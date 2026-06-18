@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load translate_tags %}
+
+{% block title %}{% t "About Us" %} - Crafts{% endblock %}
+
+{% block content %}
+<!-- Premium Hero Section -->
+<div class="about-hero py-5 mb-5 text-center position-relative overflow-hidden text-white" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-primary) 100%); border-radius: 16px; margin: 0 1rem;">
+    <div class="about-hero-overlay position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.1); z-index: 1;"></div>
+    <div class="container position-relative py-4" style="z-index: 2;">
+        <span class="badge bg-white text-primary px-3 py-2 text-uppercase mb-3" style="font-size: 0.8rem; letter-spacing: 1px; font-weight: 700;">
+            <i class="bi bi-heart-fill me-1"></i> {% t "Our Story" %}
+        </span>
+        <h1 class="display-4 fw-bold text-white mb-3 font-heading">{% t "About Us" %}</h1>
+        <p class="lead text-white-50 mx-auto" style="max-width: 600px;">
+            {% t "Every product listed is verified 100% handmade and unique." %}
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Our Journey / Story Section -->
+    <div class="row align-items-center g-5 mb-5 pb-4 text-start">
+        <div class="col-lg-6">
+            <div class="position-relative">
+                <div class="rounded-4 overflow-hidden shadow-lg border border-2 border-primary-light" style="max-height: 400px;">
+                    <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop" class="img-fluid w-100 h-100 object-fit-cover hover-zoom" alt="Craft Workshop">
+                </div>
+                <div class="position-absolute bottom-0 end-0 bg-primary text-white p-3 rounded-4 shadow-md m-3 d-none d-sm-block">
+                    <h5 class="fw-bold mb-0 text-white"><i class="bi bi-award-fill me-2"></i>{% t "Artisan Promise" %}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-4 font-heading text-dark border-bottom pb-2">
+                <i class="bi bi-compass-fill me-2 text-primary"></i>{% t "The Journey of Crafts" %}
+            </h2>
+            <p class="fs-5 text-muted mb-4" style="line-height: 1.8;">
+                {% t "Crafts Startup Story" %}
+            </p>
+            <div class="d-flex align-items-center gap-3 bg-white p-3 rounded-4 shadow-sm border border-light">
+                <div class="bg-primary-light p-3 rounded-circle text-primary">
+                    <i class="bi bi-gem fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1">{% t "Every product listed is verified 100% handmade and unique." %}</h6>
+                    <small class="text-muted">Cairo, Egypt</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Founders Section -->
+    <div class="text-center mb-5">
+        <h2 class="fw-bold font-heading text-dark position-relative d-inline-block pb-3">
+            <i class="bi bi-people-fill me-2 text-primary"></i>{% t "Our Founders" %}
+            <span class="position-absolute bottom-0 start-50 translate-middle-x bg-primary" style="height: 3px; width: 60px;"></span>
+        </h2>
+    </div>
+
+    <div class="row g-4 justify-content-center text-start">
+        <!-- Soffian Elkadi -->
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 founder-card bg-white" style="border: 1px solid var(--color-border) !important; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                <div class="position-relative text-center bg-light p-4">
+                    <div class="founder-image-wrapper mx-auto rounded-circle overflow-hidden border border-4 border-primary shadow-sm" style="width: 200px; height: 200px;">
+                        <img src="{% static 'images/owners/soffian.png' %}" class="w-100 h-100 object-fit-cover" alt="Soffian Elkadi">
+                    </div>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <h3 class="fw-bold mb-1 text-dark">{% t "Soffian Elkadi" %}</h3>
+                    <span class="badge bg-primary-light text-primary px-3 py-2 rounded-pill mb-3 fw-semibold" style="font-size: 0.85rem;">
+                        {% t "Co-Founder & Lead Designer" %}
+                    </span>
+                    <p class="text-muted text-start mb-0" style="line-height: 1.7;">
+                        {% t "Soffian Elkadi Bio" %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yehia Fatouh -->
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 founder-card bg-white" style="border: 1px solid var(--color-border) !important; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                <div class="position-relative text-center bg-light p-4">
+                    <div class="founder-image-wrapper mx-auto rounded-circle overflow-hidden border border-4 border-primary shadow-sm" style="width: 200px; height: 200px;">
+                        <img src="{% static 'images/owners/yehia.png' %}" class="w-100 h-100 object-fit-cover" alt="Yehia Fatouh">
+                    </div>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <h3 class="fw-bold mb-1 text-dark">{% t "Yehia Fatouh" %}</h3>
+                    <span class="badge bg-primary-light text-primary px-3 py-2 rounded-pill mb-3 fw-semibold" style="font-size: 0.85rem;">
+                        {% t "Co-Founder & Operations Head" %}
+                    </span>
+                    <p class="text-muted text-start mb-0" style="line-height: 1.7;">
+                        {% t "Yehia Fatouh Bio" %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .founder-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(34, 26, 21, 0.1) !important;
+        border-color: var(--color-primary) !important;
+    }
+</style>
+{% endblock %}

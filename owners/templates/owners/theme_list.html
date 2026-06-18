@@ -1,0 +1,130 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}{% t "Themes Manager" %} - {% t "Owner Portal" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold m-0"><i class="bi bi-palette-fill text-primary me-2"></i>{% t "Themes Manager" %}</h1>
+        <p class="text-muted">{% t "Manage storefront and owner control panel colors globally." %}</p>
+    </div>
+</div>
+
+<!-- Font Selector Panel -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-start">
+    <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-fonts me-2 text-primary"></i>Global Font Settings</h5>
+    <form action="{% url 'owner_theme_change_font' %}" method="POST" class="row align-items-end g-3">
+        {% csrf_token %}
+        <div class="col-md-5">
+            <label class="form-label small fw-bold text-muted">English Font (الخط الإنجليزي)</label>
+            <select name="font_family_en" class="form-select">
+                {% for val, label in font_choices_en %}
+                    <option value="{{ val }}" {% if active_theme.font_family_en == val %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label small fw-bold text-muted">Arabic Font (الخط العربي)</label>
+            <select name="font_family_ar" class="form-select">
+                {% for val, label in font_choices_ar %}
+                    <option value="{{ val }}" {% if active_theme.font_family_ar == val %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-crafts-primary w-100 py-2"><i class="bi bi-check-circle me-1"></i>Apply Fonts</button>
+        </div>
+    </form>
+</div>
+
+<!-- Grid of 10 Themes -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for theme_item in themes %}
+        <div class="col">
+            <div class="card owner-card h-100 {% if theme_item.is_active %}border-primary border-3{% endif %}">
+                <div class="card-body d-flex flex-column text-start">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0 text-dark">{{ theme_item.name }}</h5>
+                        {% if theme_item.is_active %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>{% t "Active" %}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Color Swatches Visualizer -->
+                    <div class="d-flex gap-2 mb-4 p-3 bg-light border rounded justify-content-center">
+                        <!-- Primary -->
+                        <div class="text-center">
+                            <span class="d-inline-block rounded-circle border shadow-sm" style="width: 36px; height: 36px; background-color: {{ theme_item.primary_color }};" title="Primary Color"></span>
+                            <small class="d-block text-muted" style="font-size: 0.65rem;">Primary</small>
+                        </div>
+                        <!-- Hover -->
+                        <div class="text-center">
+                            <span class="d-inline-block rounded-circle border shadow-sm" style="width: 36px; height: 36px; background-color: {{ theme_item.primary_hover_color }};" title="Hover Color"></span>
+                            <small class="d-block text-muted" style="font-size: 0.65rem;">Hover</small>
+                        </div>
+                        <!-- Bg -->
+                        <div class="text-center">
+                            <span class="d-inline-block rounded-circle border shadow-sm" style="width: 36px; height: 36px; background-color: {{ theme_item.bg_color }};" title="Background Color"></span>
+                            <small class="d-block text-muted" style="font-size: 0.65rem;">Background</small>
+                        </div>
+                        <!-- Dark -->
+                        <div class="text-center">
+                            <span class="d-inline-block rounded-circle border shadow-sm" style="width: 36px; height: 36px; background-color: {{ theme_item.dark_color }};" title="Dark Accent Color"></span>
+                            <small class="d-block text-muted" style="font-size: 0.65rem;">Dark</small>
+                        </div>
+                        <!-- Light -->
+                        <div class="text-center">
+                            <span class="d-inline-block rounded-circle border shadow-sm" style="width: 36px; height: 36px; background-color: {{ theme_item.primary_light_color }};" title="Light Accent Color"></span>
+                            <small class="d-block text-muted" style="font-size: 0.65rem;">Highlight</small>
+                        </div>
+                    </div>
+
+                    <!-- Description of portal references -->
+                    <div class="mb-4 text-muted small mt-auto">
+                        {% if 'Classic' in theme_item.name %}
+                            Inspired by the original premium warm leather and bone colors of Crafts.
+                        {% elif 'Amazon' in theme_item.name %}
+                            Inspired by Amazon's charcoal dark banners and amber primary colors.
+                        {% elif 'Etsy' in theme_item.name %}
+                            Inspired by Etsy's orange creative accents and clean backgrounds.
+                        {% elif 'Shopify' in theme_item.name %}
+                            Inspired by Shopify's mint green branding and light dashboard lines.
+                        {% elif 'eBay' in theme_item.name %}
+                            Inspired by eBay's signature corporate blue buttons.
+                        {% elif 'IKEA' in theme_item.name %}
+                            Inspired by IKEA's famous blue and yellow layout blocks.
+                        {% elif 'Apple' in theme_item.name %}
+                            Inspired by Apple's minimalist monochrome, grey, and black design elements.
+                        {% elif 'Netflix' in theme_item.name %}
+                            Inspired by Netflix's deep dark mode background and crimson accents.
+                        {% elif 'GitHub' in theme_item.name %}
+                            Inspired by GitHub's programmer-style slate colors and code blue links.
+                        {% elif 'Target' in theme_item.name %}
+                            Inspired by Target's bright cherry red badges and white layouts.
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid mt-auto">
+                        {% if theme_item.is_active %}
+                            <button type="button" class="btn btn-outline-success disabled text-uppercase fs-6 py-2">
+                                <i class="bi bi-patch-check-fill me-1"></i>{% t "Active Theme" %}
+                            </button>
+                        {% else %}
+                            <a href="{% url 'owner_theme_activate' theme_item.id %}" class="btn btn-crafts-primary text-uppercase fs-6 py-2">
+                                <i class="bi bi-palette me-1"></i>{% t "Activate" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

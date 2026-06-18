@@ -1,0 +1,255 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}Seller Dashboard - Crafts Control Center{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold m-0"><i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard</h1>
+        <p class="text-muted">Welcome to your Crafts inventory and campaigns management dashboard.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'owner_product_create' %}" class="btn btn-crafts-primary btn-sm px-3">
+            <i class="bi bi-plus-circle me-1"></i>Add Product
+        </a>
+        <a href="{% url 'owner_promotion_create' %}" class="btn btn-outline-dark btn-sm px-3">
+            <i class="bi bi-plus-circle me-1"></i>Schedule Promotion
+        </a>
+    </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-4 mb-4">
+    <!-- Total Products -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="card owner-card p-3 border-start border-primary border-4 h-100 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-bold font-monospace">Total Products</span>
+                    <h2 class="fw-bold mt-1 mb-0">{{ total_products }}</h2>
+                </div>
+                <div class="bg-primary-light p-3 rounded-3 text-primary">
+                    <i class="bi bi-box-seam fs-3"></i>
+                </div>
+            </div>
+            <div class="mt-3 small border-top pt-2">
+                <a href="{% url 'owner_product_list' %}" class="text-decoration-none text-primary">Manage inventory <i class="bi bi-arrow-right small ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Orders -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="card owner-card p-3 border-start border-warning border-4 h-100 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-bold font-monospace">Pending Orders</span>
+                    <h2 class="fw-bold mt-1 mb-0 text-warning">{{ pending_orders_count }}</h2>
+                </div>
+                <div class="bg-warning-light p-3 rounded-3 text-warning" style="background-color: #fefbeb;">
+                    <i class="bi bi-clock-history fs-3"></i>
+                </div>
+            </div>
+            <div class="mt-3 small border-top pt-2">
+                <a href="{% url 'owner_order_list' %}?status=AWAITING_VERIFICATION" class="text-decoration-none text-warning">Verify transfers <i class="bi bi-arrow-right small ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Sales -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="card owner-card p-3 border-start border-success border-4 h-100 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-bold font-monospace">Total Sales</span>
+                    <h2 class="fw-bold mt-1 mb-0 text-success">${{ total_sales|floatformat:2 }}</h2>
+                </div>
+                <div class="bg-success-light p-3 rounded-3 text-success" style="background-color: #f0fdf4;">
+                    <i class="bi bi-currency-dollar fs-3"></i>
+                </div>
+            </div>
+            <div class="mt-3 small border-top pt-2">
+                <a href="{% url 'owner_order_list' %}" class="text-decoration-none text-success">View all orders <i class="bi bi-arrow-right small ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Promotions -->
+    <div class="col-xl-3 col-sm-6">
+        <div class="card owner-card p-3 border-start border-danger border-4 h-100 shadow-sm border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small text-uppercase fw-bold font-monospace">Active Promotions</span>
+                    <h2 class="fw-bold mt-1 mb-0 text-danger">{{ active_promotions_count }}</h2>
+                </div>
+                <div class="bg-danger-light p-3 rounded-3 text-danger" style="background-color: #fdf2ee;">
+                    <i class="bi bi-tags-fill fs-3"></i>
+                </div>
+            </div>
+            <div class="mt-3 small border-top pt-2">
+                <a href="{% url 'owner_promotion_list' %}" class="text-decoration-none text-danger">Manage schedules <i class="bi bi-arrow-right small ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent products -->
+    <div class="col-lg-6">
+        <div class="card owner-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Products</h5>
+                <a href="{% url 'owner_product_list' %}" class="btn btn-outline-secondary btn-sm px-3">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in recent_products %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if prod.image %}
+                                            <img src="{{ prod.image.url }}" class="rounded" style="width: 32px; height: 32px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-secondary rounded text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.6rem;">No Img</div>
+                                        {% endif %}
+                                        <a href="{% url 'owner_product_edit' prod.id %}" class="fw-bold text-dark text-decoration-none text-truncate" style="max-width: 150px;">{{ prod.name }}</a>
+                                    </div>
+                                </td>
+                                <td class="small">{{ prod.category.name }}</td>
+                                <td class="fw-bold">${{ prod.price }}</td>
+                                <td>
+                                    {% if prod.status == 'PUBLISHED' %}
+                                        <span class="badge bg-success">Published</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Draft</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small">No products available. Add your first handcraft product!</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent promotions -->
+    <div class="col-lg-6">
+        <div class="card owner-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-tag-fill me-2 text-danger"></i>Recent Promotions</h5>
+                <a href="{% url 'owner_promotion_list' %}" class="btn btn-outline-secondary btn-sm px-3">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Name</th>
+                            <th>Target Scope</th>
+                            <th>Discount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for promo in recent_promotions %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'owner_promotion_edit' promo.id %}" class="fw-bold text-dark text-decoration-none text-truncate" style="max-width: 150px;">{{ promo.name }}</a>
+                                </td>
+                                <td class="small">{{ promo.get_scope_display }}</td>
+                                <td class="fw-bold text-danger">
+                                    {% if promo.discount_type == 'PERCENTAGE' %}
+                                        {{ promo.discount_value|floatformat:0 }}% OFF
+                                    {% elif promo.discount_type == 'FIXED_AMOUNT' %}
+                                        ${{ promo.discount_value|floatformat:0 }} OFF
+                                    {% else %}
+                                        ${{ promo.discount_value }} (Fixed Price)
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not promo.is_active %}
+                                        <span class="badge bg-dark">Disabled</span>
+                                    {% else %}
+                                        {% if promo.start_date > now %}
+                                            <span class="badge bg-info">Scheduled</span>
+                                        {% elif promo.end_date < now %}
+                                            <span class="badge bg-secondary">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Active</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted small">No promotions scheduled. Set up a sale campaign!</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Orders -->
+    <div class="col-12 mt-4 text-start">
+        <div class="card owner-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="bi bi-cart-check me-2 text-success"></i>Recent Orders</h5>
+                <a href="{% url 'owner_order_list' %}" class="btn btn-outline-secondary btn-sm px-3">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Total Amount</th>
+                            <th>Date Placed</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in recent_orders %}
+                            <tr>
+                                <td class="fw-bold">#{{ ord.id }}</td>
+                                <td>{{ ord.full_name }}</td>
+                                <td class="fw-bold text-primary font-monospace">${{ ord.total_amount|floatformat:2 }}</td>
+                                <td>{{ ord.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if ord.status == 'AWAITING_VERIFICATION' %}bg-warning text-dark{% elif ord.status == 'CONFIRMED' %}bg-success text-white{% elif ord.status == 'SHIPPED' %}bg-primary text-white{% else %}bg-secondary text-white{% endif %} px-2.5 py-1.5 rounded-pill" style="font-size: 0.75rem;">
+                                        {% t ord.get_status_display %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'owner_order_detail' ord.id %}" class="btn btn-outline-primary btn-sm px-3 rounded-pill">
+                                        Verify
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted small">No orders received yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

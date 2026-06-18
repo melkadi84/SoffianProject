@@ -1,0 +1,203 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load translate_tags %}
+
+{% block title %}Crafts - {% t "Shop Catalog" %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Active Promotions Carousel / Banner -->
+    <div class="row mb-5">
+        <div class="col-12">
+            {% if active_promotions %}
+                <div id="promoCarousel" class="carousel slide carousel-crafts" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        {% for promo in active_promotions %}
+                            <button type="button" data-bs-target="#promoCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+                        {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                        {% for promo in active_promotions %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1200&auto=format&fit=crop" class="d-block w-100 opacity-25" style="height: 380px; object-fit: cover; filter: grayscale(40%);" alt="Promotion Background">
+                                <div class="carousel-caption d-flex flex-column justify-content-center h-100 px-5">
+                                    <div class="badge bg-danger align-self-start mb-2 px-3 py-2 text-uppercase font-monospace" style="font-size: 0.8rem; letter-spacing: 1px;">
+                                        <i class="bi bi-tag-fill me-1"></i>{% t "Active" %}
+                                    </div>
+                                    <h2 class="display-5 fw-bold text-white mb-2">{{ promo.name }}</h2>
+                                    <p class="lead text-white-50 mb-3 col-lg-8">
+                                        {% t "Every product listed is verified 100% handmade and unique." %}
+                                    </p>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="fs-4 text-warning fw-bold">
+                                            {% if promo.discount_type == 'PERCENTAGE' %}
+                                                {{ promo.discount_value|floatformat:0 }}% {% t "OFF" %}
+                                            {% elif promo.discount_type == 'FIXED_AMOUNT' %}
+                                                 {{ promo.discount_value|currency }} {% t "OFF" %}
+                                            {% else %}
+                                                {% t "Special Price Overwrite" %}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#promoCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#promoCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% else %}
+                <!-- Default Static Welcoming Banner -->
+                <div class="p-5 text-white bg-dark rounded-4 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(135deg, #221a15 0%, #3e2f25 100%) !important;">
+                    <div class="position-absolute top-0 end-0 opacity-10 p-5">
+                        <i class="bi bi-palette-fill" style="font-size: 15rem;"></i>
+                    </div>
+                    <div class="col-md-8 py-3 position-relative" style="z-index: 1;">
+                        <h1 class="display-5 fw-bold text-white mb-3">{% t "Discover Authentic Crafts" %}</h1>
+                        <p class="fs-5 text-white-50 mb-4">{% t "Every product listed is verified 100% handmade and unique." %}</p>
+                        <a href="{% url 'owner_dashboard' %}" class="btn btn-crafts-primary btn-lg"><i class="bi bi-shop me-2"></i>{% t "Owner Portal" %}</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Store Layout -->
+    <div class="row">
+        
+        <!-- Sidebar Filter (Category Pills) -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="category-sidebar">
+                <h5 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-funnel me-2"></i>{% t "Categories" %}</h5>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{% url 'store' %}{% if search_query %}?search={{ search_query }}{% endif %}" class="category-link {% if not selected_category %}active{% endif %}">
+                        <i class="bi bi-grid-fill"></i>{% t "All Crafts" %}
+                    </a>
+                    {% for cat in categories %}
+                        <a href="{% url 'store' %}?category={{ cat.slug }}{% if search_query %}&search={{ search_query }}{% endif %}" class="category-link {% if selected_category.id == cat.id %}active{% endif %}">
+                            <i class="bi {{ cat.icon|default:'bi-box-seam' }}"></i>{{ cat.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 pt-3 border-top d-none d-md-block text-start">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <h6 class="fw-bold mb-2">{% t "Artisan Promise" %}</h6>
+                        <p class="text-muted small mb-0">{% t "Every product listed is verified 100% handmade and unique." %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Grid Area -->
+        <div class="col-lg-9 col-md-8">
+            
+            <!-- Filters Feedback & Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 text-start">
+                <div>
+                    <h3 class="fw-bold m-0 fs-4">
+                        {% if selected_category %}
+                            {{ selected_category.name }}
+                        {% elif search_query %}
+                            {% t 'Search Results for "{}"' search_query %}
+                        {% else %}
+                            {% t "All Featured Items" %}
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted small mb-0">{% t "Showing {} available products" products|length %}</p>
+                </div>
+                
+                <!-- Quick Search Reset -->
+                {% if selected_category or search_query %}
+                    <a href="{% url 'store' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>{% t "Reset Filters" %}
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Product Grid -->
+            {% if products %}
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for prod in products %}
+                        <div class="col">
+                            <div class="product-card">
+                                <div class="card-img-wrapper">
+                                    {% if prod.is_on_sale %}
+                                        {% with promo_info=prod.active_promotion_info %}
+                                            <span class="badge-sale">
+                                                {% if promo_info.promotion.discount_type == 'PERCENTAGE' %}
+                                                    -{{ promo_info.promotion.discount_value|floatformat:0 }}%
+                                                {% else %}
+                                                    SALE
+                                                {% endif %}
+                                            </span>
+                                        {% endwith %}
+                                    {% endif %}
+                                    
+                                    {% if prod.image %}
+                                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                                    {% else %}
+                                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
+                                    {% endif %}
+                                </div>
+                                <div class="card-body text-start">
+                                    <span class="category-label">{{ prod.category.name }}</span>
+                                    <h4 class="product-title">
+                                        <a href="{% url 'product_detail' prod.slug %}">{{ prod.name }}</a>
+                                    </h4>
+                                    
+                                    <div class="stars-rating mb-3">
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                        <i class="bi bi-star-half"></i>
+                                        <span class="text-muted small ms-1">(12)</span>
+                                    </div>
+                                    
+                                    <div class="price-wrapper mb-3">
+                                         {% if prod.is_on_sale %}
+                                             <span class="original-price text-muted text-decoration-line-through">{{ prod.price|currency }}</span>
+                                             <span class="sale-price fw-bold text-danger">{{ prod.active_price|currency }}</span>
+                                         {% else %}
+                                             <span class="regular-price">{{ prod.price|currency }}</span>
+                                         {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 mt-auto">
+                                        <a href="{% url 'cart_add' prod.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-crafts-primary btn-sm">
+                                            <i class="bi bi-cart-plus me-1"></i>{% t "Add to Cart" %}
+                                        </a>
+                                        <a href="{% url 'product_detail' prod.slug %}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>{% t "View Details" %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 border rounded-4 bg-white shadow-sm w-100">
+                    <i class="bi bi-search text-muted display-1 mb-3 d-block"></i>
+                    <h4 class="fw-bold">{% t "No Products Found" %}</h4>
+                    <p class="text-muted col-lg-6 mx-auto">{% t "We couldn't find any items matching your filters or search terms. Try searching for something else or clearing the filters." %}</p>
+                    <a href="{% url 'store' %}" class="btn btn-crafts-primary mt-3">{% t "Reset Filters" %}</a>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Backend toast notifications trigger automatically -->
+{% endblock %}

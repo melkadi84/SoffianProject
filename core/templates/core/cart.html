@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load translate_tags %}
+
+{% block title %}{% t "Cart" %} - Crafts{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4 fw-bold"><i class="bi bi-cart3 me-2 text-primary"></i>{% t "Cart" %}</h1>
+    
+    {% if cart_items %}
+        <div class="row g-4">
+            <!-- Cart Items List -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-uppercase font-monospace" style="font-size: 0.85rem;">
+                                <tr>
+                                    <th scope="col" class="ps-4">{% t "Product" %}</th>
+                                    <th scope="col">{% t "Price" %}</th>
+                                    <th scope="col">{% t "Quantity" %}</th>
+                                    <th scope="col">{% t "Total" %}</th>
+                                    <th scope="col" class="text-center pe-4">{% t "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                    <tr>
+                                        <!-- Product Info -->
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="rounded-3 border overflow-hidden" style="width: 70px; height: 70px;">
+                                                    {% if item.product.image %}
+                                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-100 h-100 object-fit-cover">
+                                                    {% else %}
+                                                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=100&auto=format&fit=crop" alt="Placeholder" class="w-100 h-100 object-fit-cover">
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1">
+                                                        <a href="{% url 'product_detail' item.product.slug %}" class="text-dark text-decoration-none hover-primary">
+                                                            {{ item.product.name }}
+                                                        </a>
+                                                    </h6>
+                                                    <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.75rem;">
+                                                        {{ item.product.category.name }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Price -->
+                                        <td>
+                                            <span class="fw-semibold">{{ item.price|currency }}</span>
+                                        </td>
+                                        
+                                        <!-- Quantity -->
+                                        <td>
+                                            <div class="d-flex align-items-center" style="max-width: 120px;">
+                                                <form action="{% url 'cart_add' item.product.id %}" method="POST" class="d-flex align-items-center">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next" value="{% url 'cart' %}">
+                                                    
+                                                    <!-- Decrement by sending quantity=-1 to cart_add -->
+                                                    <a href="{% url 'cart_add' item.product.id %}?quantity=-1&next={% url 'cart' %}" class="btn btn-outline-secondary btn-sm px-2 py-1">
+                                                        <i class="bi bi-minus"></i>
+                                                    </a>
+                                                    
+                                                    <input type="text" name="quantity" class="form-control form-control-sm text-center mx-2 bg-light border-0 fw-bold" value="{{ item.quantity }}" style="width: 40px;" readonly>
+                                                    
+                                                    <!-- Increment by sending quantity=1 to cart_add -->
+                                                    <button type="submit" class="btn btn-outline-secondary btn-sm px-2 py-1">
+                                                        <i class="bi bi-plus"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Total -->
+                                        <td>
+                                            <span class="fw-bold text-primary">{{ item.total|currency }}</span>
+                                        </td>
+                                        
+                                        <!-- Action -->
+                                        <td class="text-center pe-4">
+                                            <a href="{% url 'cart_remove' item.product.id %}" class="btn btn-outline-danger btn-sm rounded-circle p-2" title="{% t 'Remove' %}">
+                                                <i class="bi bi-trash-fill align-middle"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cart Summary Panel -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 position-sticky" style="top: 2rem;">
+                    <h4 class="fw-bold mb-4">{% t "Order Summary" %}</h4>
+                    
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span class="text-muted">{% t "Subtotal:" %}</span>
+                        <span class="fw-bold fs-5">{{ subtotal|currency }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="text-muted">{% t "Total:" %}</span>
+                        <span class="fw-bold text-primary fs-3">{{ subtotal|currency }}</span>
+                    </div>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'checkout' %}" class="btn btn-crafts-primary btn-lg py-3">
+                            <i class="bi bi-credit-card me-2"></i>{% t "Checkout" %}
+                        </a>
+                        <a href="{% url 'store' %}" class="btn btn-outline-secondary py-2">
+                            <i class="bi bi-arrow-left me-2"></i>{% t "Continue Shopping" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty Cart State -->
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+            <div class="mb-4">
+                <i class="bi bi-cart-x text-muted display-1"></i>
+            </div>
+            <h3 class="fw-bold mb-2">{% t "Your Cart is Empty" %}</h3>
+            <p class="text-muted mb-4 col-lg-6 mx-auto">
+                {% t "Discover authentic wooden carvings, rustic pottery, and hand-woven masterpieces. Add them to your cart to checkout!" %}
+            </p>
+            <a href="{% url 'store' %}" class="btn btn-crafts-primary px-5 py-3 rounded-pill btn-lg">
+                <i class="bi bi-shop me-2"></i>{% t "Continue Shopping" %}
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

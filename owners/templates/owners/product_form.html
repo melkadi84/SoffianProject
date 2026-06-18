@@ -1,0 +1,194 @@
+{% extends 'owners/base_owner.html' %}
+{% load static %}
+
+{% block title %}
+    {% if is_edit %}Edit Product - "{{ product.name }}"{% else %}Create Product{% endif %} - Owner Portal
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'owner_product_list' %}" class="btn btn-outline-secondary btn-sm px-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Inventory
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Form -->
+    <div class="col-lg-7">
+        <div class="card owner-card p-4">
+            <h3 class="fw-bold mb-3 border-bottom pb-2">
+                {% if is_edit %}<i class="bi bi-pencil-square text-primary me-2"></i>Edit Product{% else %}<i class="bi bi-plus-circle-fill text-primary me-2"></i>Add New Product{% endif %}
+            </h3>
+            
+            <form method="POST" enctype="multipart/form-data" class="form-crafts">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Product Name -->
+                <div class="mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label small fw-bold">Product Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Category & Price -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.category.id_for_label }}" class="form-label small fw-bold">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger small mt-1">{{ form.category.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.price.id_for_label }}" class="form-label small fw-bold">Price ($ USD)</label>
+                        {{ form.price }}
+                        {% if form.price.errors %}
+                            <div class="text-danger small mt-1">{{ form.price.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Product Description -->
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label small fw-bold">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Image Upload -->
+                <div class="mb-3">
+                    <label for="{{ form.image.id_for_label }}" class="form-label small fw-bold">Product Image</label>
+                    {{ form.image }}
+                    <div class="form-text small text-muted">Upload a clear product photography file (PNG, JPG, JPEG).</div>
+                    {% if form.image.errors %}
+                        <div class="text-danger small mt-1">{{ form.image.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Status -->
+                <div class="mb-4">
+                    <label for="{{ form.status.id_for_label }}" class="form-label small fw-bold">Status</label>
+                    {{ form.status }}
+                    <div class="form-text small text-muted">Draft items are only visible to the owner. Published items are instantly visible on the store page.</div>
+                    {% if form.status.errors %}
+                        <div class="text-danger small mt-1">{{ form.status.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-crafts-primary px-4 py-2">
+                        <i class="bi bi-cloud-arrow-up me-2"></i>{% if is_edit %}Save Changes{% else %}Publish Product{% endif %}
+                    </button>
+                    <a href="{% url 'owner_product_list' %}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Sticky Live Preview Pane -->
+    <div class="col-lg-5">
+        <div class="preview-pane-sticky">
+            <div class="card owner-card p-4 bg-light border-dashed">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0 text-muted"><i class="bi bi-eye me-2"></i>Live Store Preview</h5>
+                    <div class="small">
+                        <span class="status-dot bg-secondary me-1" id="preview-status-dot"></span>
+                        <span id="preview-status" class="text-muted font-monospace small">DRAFT</span>
+                    </div>
+                </div>
+                
+                <hr class="mt-0 mb-4">
+                
+                <!-- Replicated Product Card -->
+                <div class="col-lg-10 mx-auto">
+                    <div class="product-card" id="live-preview-card">
+                        <div class="card-img-wrapper">
+                            <span class="badge-draft" id="preview-status-badge">DRAFT</span>
+                            
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" id="preview-image" data-original-src="{{ product.image.url }}" alt="Preview">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" id="preview-image" alt="Preview">
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <span class="category-label" id="preview-category">
+                                {% if product %}{{ product.category.name }}{% else %}Category{% endif %}
+                            </span>
+                            <h4 class="product-title" id="preview-name">
+                                {{ product.name|default:'Product Name Placeholder' }}
+                            </h4>
+                            
+                            <!-- Rating Mockup -->
+                            <div class="stars-rating mb-3">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                                <span class="text-muted small ms-1">(0)</span>
+                            </div>
+                            
+                            <div class="price-wrapper mb-3">
+                                <span class="regular-price" id="preview-price">
+                                    {% if product %}${{ product.price }}{% else %}$0.00{% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-auto">
+                                <button class="btn btn-crafts-primary btn-sm disabled" type="button">
+                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Extra preview fields -->
+                <div class="mt-4 p-3 bg-white border rounded shadow-sm">
+                    <h6 class="fw-bold mb-1 small text-muted">Item Description View:</h6>
+                    <p class="small text-dark m-0" id="preview-description" style="white-space: pre-wrap;">{{ product.description|default:'No description provided yet.' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include live preview script -->
+<script src="{% static 'js/preview.js' %}"></script>
+
+<!-- Edit initialization trigger logic -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('id_name');
+        const priceInput = document.getElementById('id_price');
+        const categorySelect = document.getElementById('id_category');
+        const statusSelect = document.getElementById('id_status');
+        
+        // Dispatch events on load to populate the edit state in the preview card
+        if (nameInput && nameInput.value) nameInput.dispatchEvent(new Event('input'));
+        if (priceInput && priceInput.value) priceInput.dispatchEvent(new Event('input'));
+        if (categorySelect) categorySelect.dispatchEvent(new Event('change'));
+        if (statusSelect) statusSelect.dispatchEvent(new Event('change'));
+    });
+</script>
+<style>
+    .border-dashed {
+        border: 2px dashed #c0b8ad !important;
+    }
+</style>
+{% endblock %}

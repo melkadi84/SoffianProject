@@ -1,0 +1,121 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}
+    {% if is_edit %}{% t "Edit" %}{% else %}{% t "Add New Category" %}{% endif %} - {% t "Owner Portal" %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'owner_category_list' %}" class="btn btn-outline-secondary btn-sm px-3">
+        <i class="bi bi-arrow-left me-1"></i>{% t "Cancel" %}
+    </a>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-8">
+        <div class="card owner-card p-4">
+            <h3 class="fw-bold mb-3 border-bottom pb-2">
+                {% if is_edit %}<i class="bi bi-pencil-square text-primary me-2"></i>{% t "Edit" %}{% else %}<i class="bi bi-plus-circle-fill text-primary me-2"></i>{% t "Add New Category" %}{% endif %}
+            </h3>
+            
+            <form method="POST" class="form-crafts">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Category Name -->
+                <div class="mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label small fw-bold">{% t "Category Name" %}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Category Icon -->
+                <div class="mb-3">
+                    <label for="{{ form.icon.id_for_label }}" class="form-label small fw-bold">{% t "Category Icon" %} ({% t "e.g., bi-palette" %})</label>
+                    {{ form.icon }}
+                    <div class="form-text small text-muted">Use a Bootstrap Icon class name. Examples of gorgeous icons:</div>
+                    
+                    <!-- Cheat sheet -->
+                    <div class="row g-2 mt-2 p-2 bg-light border rounded small">
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-bezier2">
+                                <i class="bi bi-bezier2 me-1 text-primary"></i> bi-bezier2
+                            </span>
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-tree-fill">
+                                <i class="bi bi-tree-fill me-1 text-primary"></i> bi-tree-fill
+                            </span>
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-scissors">
+                                <i class="bi bi-scissors me-1 text-primary"></i> bi-scissors
+                            </span>
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-gem">
+                                <i class="bi bi-gem me-1 text-primary"></i> bi-gem
+                            </span>
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-wallet2">
+                                <i class="bi bi-wallet2 me-1 text-primary"></i> bi-wallet2
+                            </span>
+                        </div>
+                        <div class="col-sm-4 col-6">
+                            <span class="icon-selector badge bg-white border text-dark p-2 w-100 text-start cursor-pointer" data-icon="bi-palette">
+                                <i class="bi bi-palette me-1 text-primary"></i> bi-palette
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if form.icon.errors %}
+                        <div class="text-danger small mt-1">{{ form.icon.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2 border-top pt-3">
+                    <button type="submit" class="btn btn-crafts-primary px-4 py-2">
+                        <i class="bi bi-check-circle me-2"></i>{% t "Submit" %}
+                    </button>
+                    <a href="{% url 'owner_category_list' %}" class="btn btn-outline-secondary px-4 py-2">{% t "Cancel" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const iconInput = document.getElementById('id_icon');
+        const badgeSelectors = document.querySelectorAll('.icon-selector');
+        
+        badgeSelectors.forEach(badge => {
+            badge.style.cursor = 'pointer';
+            badge.addEventListener('click', function() {
+                const selectedIcon = this.getAttribute('data-icon');
+                if (iconInput) {
+                    iconInput.value = selectedIcon;
+                    
+                    // Highlight selected badge
+                    badgeSelectors.forEach(b => b.classList.remove('bg-primary', 'text-white'));
+                    this.classList.remove('bg-white', 'text-dark');
+                    this.classList.add('bg-primary', 'text-white');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

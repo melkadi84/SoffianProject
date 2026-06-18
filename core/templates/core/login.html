@@ -1,0 +1,121 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load translate_tags %}
+
+{% block title %}{% t "Sign In" %} - Crafts{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        
+        <div class="text-center mb-4">
+            <h2 class="fw-bold"><i class="bi bi-box-arrow-in-right text-primary me-2"></i>{% t "Welcome Back" %}</h2>
+            <p class="text-muted">{% t "Sign in to your Crafts account." %}</p>
+        </div>
+
+        <!-- Testing Credentials Helper Banner -->
+        <div class="alert alert-info border-info p-3 mb-4 rounded-3 small">
+            <div class="fw-bold mb-1"><i class="bi bi-info-circle-fill me-2"></i>{% t "Testing Credentials" %}</div>
+            <ul class="mb-0 ps-3">
+                <li><strong>{% t "Normal User" %}:</strong> user@crafts.com / password123</li>
+                <li><strong>{% t "Store Owner" %}:</strong> owner@crafts.com / password123</li>
+            </ul>
+        </div>
+        
+        <!-- Standard Email Login Form -->
+        <form method="POST" class="form-crafts mb-4">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="email" class="form-label small fw-bold">{% t "Email Address" %}</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                    <input type="email" name="email" id="email" class="form-control border-start-0 ps-0" placeholder="user@crafts.com" required>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label small fw-bold">{% t "Password" %}</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                    <input type="password" name="password" id="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-crafts-primary w-100 py-2 mb-3">
+                <i class="bi bi-box-arrow-in-right me-2"></i>{% t "Sign In with Email" %}
+            </button>
+        </form>
+
+        <div class="text-center position-relative my-4">
+            <hr class="text-muted">
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">{% t "OR SIGN IN WITH" %}</span>
+        </div>
+
+        <!-- Social Auth Buttons -->
+        <div class="row g-2 mb-4">
+            <!-- Google Login -->
+            <div class="col-6">
+                <a href="{% url 'mock_oauth' 'google' %}" class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
+                    <i class="bi bi-google"></i> {% t "Google" %}
+                </a>
+            </div>
+            
+            <!-- Apple Login -->
+            <div class="col-6">
+                <a href="{% url 'mock_oauth' 'apple' %}" class="btn btn-outline-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
+                    <i class="bi bi-apple"></i> {% t "Apple" %}
+                </a>
+            </div>
+            
+            <!-- Mobile Instant Login -->
+            <div class="col-12 mt-2">
+                <button class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#mobileCollapse" aria-expanded="false" aria-controls="mobileCollapse">
+                    <i class="bi bi-phone"></i> {% t "Mobile Phone Instant Signin" %}
+                </button>
+                <div class="collapse mt-2" id="mobileCollapse">
+                    <div class="card card-body border-secondary p-3 bg-light">
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-white"><i class="bi bi-telephone text-muted"></i></span>
+                            <input type="text" id="mock-phone-input" class="form-control" placeholder="Enter Phone Number (e.g. 0559998877)">
+                        </div>
+                        <button type="button" id="mock-mobile-btn" class="btn btn-dark btn-sm w-100">
+                            {% t "Instant Log In" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <p class="small text-muted mb-0">{% t "Don't have an account?" %} <a href="{% url 'signup' %}" class="text-primary fw-bold text-decoration-none">{% t "Create Account" %}</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mockPhoneBtn = document.getElementById('mock-mobile-btn');
+        const mockPhoneInput = document.getElementById('mock-phone-input');
+
+        mockPhoneBtn.addEventListener('click', function() {
+            const phone = mockPhoneInput.value.trim();
+            if (phone.length < 5) {
+                Swal.fire({
+                    title: "{% t 'Invalid Phone Number' %}",
+                    text: "{% t 'Please enter a valid phone number (at least 5 digits) for mock mobile login.' %}",
+                    icon: 'warning',
+                    confirmButtonColor: '#8c6239'
+                });
+                return;
+            }
+            
+            // Redirect to mock mobile signin
+            const url = `{% url 'mock_oauth' 'mobile' %}?phone=${encodeURIComponent(phone)}`;
+            window.location.href = url;
+        });
+    });
+</script>
+{% endblock %}

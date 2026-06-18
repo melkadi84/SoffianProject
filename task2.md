@@ -1,0 +1,44 @@
+# Crafts E-commerce Project Checklist
+
+- `[x]` Setup Python environment & install dependencies
+- `[x]` Create Django project (`crafts_project`) and apps (`core`, `owners`)
+- `[x]` Define CustomUser and configure Django auth settings
+- `[x]` Define Category, Product, and Promotion models in `core`
+- `[x]` Configure media uploads and run initial migrations
+- `[x]` Seed database with default categories and sample products
+- `[x]` Create core styles (`style.css`), live preview Javascript (`preview.js`), and helper libraries (Bootstrap 5, SweetAlert2)
+- `[x]` Implement User Portal (Browsing, Category Filters, Search, Product Details)
+- `[x]` Implement Authentication views & templates (Email signup + verification, mock Google/Apple/Mobile flows)
+- `[x]` Implement Owner Dashboard & Product CRUD (featuring split-screen live preview)
+- `[x]` Implement Promotion Scheduler CRUD (supporting discounts across all, category, or single item)
+- `[x]` Add automated unit tests & perform manual verification
+- `[x]` Configure multi-language settings and URL routing
+- `[x]` Implement core/translations.py with dictionary mapping
+- `[x]` Create custom templatetag for zero-dependency translations
+- `[x]` Update all storefront and owner templates to support translation, RTL flipping, and language selector dropdowns
+- `[x]` Configure Category CRUD URL routes in `owners/urls.py`
+- `[x]` Create CategoryForm and category views in `owners/views.py`
+- `[x]` Create category_list.html and category_form.html templates
+- `[x]` Link Category Manager in base sidebar
+- `[x]` Verify translation and category functionality manually
+- `[x]` Define Theme model in `core/models.py` and run migrations
+- `[x]` Implement core/context_processors.py and register in settings
+- `[x]` Configure Theme manager URLs in `owners/urls.py`
+- `[x]` Implement theme views with self-healing seeds in `owners/views.py`
+- `[x]` Create theme_list.html template to manage colors
+- `[x]` Render dynamic CSS override in base shells and sidebar menu
+- `[x]` Add automated unit tests & verify Theme customization manually
+- `[x]` Define Order and OrderItem models in `core/models.py` and run migrations
+- `[x]` Implement session cart and checkout views in `core/views.py`
+- `[x]` Create cart, checkout, and order success templates in `core`
+- `[x]` Configure Orders manager views and URLs in `owners`
+- `[x]` Create order list and order detail templates in `owners`
+- `[x]` Add order links in user base header and owner sidebar menu
+- `[x]` Add automated unit tests & verify checkout and order workflow manually
+- `[x]` Implement About Us page view, templates, and routing
+- `[x]` Generate Yehia Fatouh portrait image and copy both portraits to static workspace
+- `[x]` Update Instapay link and QR Code image in checkout page
+- `[x]` Fix footer contrast and text-muted colors
+- `[x]` Standardize global dynamic font families for headings and inputs
+- `[x]` Translate all checkout, login, signup, and empty cart fields
+

@@ -1,0 +1,145 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}Promotions Scheduler - Crafts Owner Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold m-0"><i class="bi bi-tags-fill text-danger me-2"></i>Promotions Scheduler</h1>
+        <p class="text-muted">Create campaigns, apply discounts across all products, specific categories, or single items.</p>
+    </div>
+    <div>
+        <a href="{% url 'owner_promotion_create' %}" class="btn btn-danger">
+            <i class="bi bi-plus-lg me-1"></i>New Promotion Campaign
+        </a>
+    </div>
+</div>
+
+<!-- Promotions Table Card -->
+<div class="card owner-card p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Campaign Name</th>
+                    <th>Scope</th>
+                    <th>Target Scope</th>
+                    <th>Discount Details</th>
+                    <th>Duration Bounds</th>
+                    <th>Status</th>
+                    <th style="width: 150px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in promotions %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ promo.name }}</div>
+                            <small class="text-muted">Created: {{ promo.created_at|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ promo.get_scope_display }}</span>
+                        </td>
+                        <td>
+                            {% if promo.scope == 'ALL' %}
+                                <span class="text-muted italic"><i class="bi bi-globe2 me-1"></i>Entire Catalog</span>
+                            {% elif promo.scope == 'CATEGORY' %}
+                                <strong>Category:</strong> {{ promo.category.name }}
+                            {% elif promo.scope == 'PRODUCT' %}
+                                <strong>Product:</strong> {{ promo.product.name }}
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-danger">
+                            {% if promo.discount_type == 'PERCENTAGE' %}
+                                <i class="bi bi-percent me-1"></i>{{ promo.discount_value|floatformat:0 }}% {% t "OFF" %}
+                            {% elif promo.discount_type == 'FIXED_AMOUNT' %}
+                                <i class="bi bi-cash me-1"></i>{{ promo.discount_value|currency }} {% t "OFF" %}
+                            {% else %}
+                                <i class="bi bi-magic me-1"></i>{{ promo.discount_value|currency }} ({% t "Special Price Overwrite" %})
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            <div><i class="bi bi-calendar-event me-1"></i><strong>Start:</strong> {{ promo.start_date|date:"M d, H:i" }}</div>
+                            <div><i class="bi bi-calendar-check me-1"></i><strong>End:</strong> {{ promo.end_date|date:"M d, H:i" }}</div>
+                        </td>
+                        <td>
+                            {% if not promo.is_active %}
+                                <span class="badge bg-dark"><i class="bi bi-x-circle me-1"></i>Disabled</span>
+                            {% else %}
+                                {% if promo.start_date > now %}
+                                    <span class="badge bg-info text-dark"><i class="bi bi-hourglass-split me-1"></i>Scheduled</span>
+                                {% elif promo.end_date < now %}
+                                    <span class="badge bg-secondary"><i class="bi bi-calendar-x me-1"></i>Expired</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'owner_promotion_edit' promo.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-promo-btn" 
+                                        data-promo-id="{{ promo.id }}" 
+                                        data-promo-name="{{ promo.name }}"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-tags text-muted display-2 mb-3 d-block"></i>
+                            <h5 class="fw-bold">No Promotions Scheduled</h5>
+                            <p class="small text-muted">Create your first sale campaign to drive storefront conversions.</p>
+                            <a href="{% url 'owner_promotion_create' %}" class="btn btn-danger btn-sm mt-2">Schedule Campaign</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Hidden deletion URL generator -->
+<form id="delete-promo-form" method="POST" action="" class="d-none">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.delete-promo-btn');
+        const deleteForm = document.getElementById('delete-promo-form');
+
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const promoId = this.getAttribute('data-promo-id');
+                const promoName = this.getAttribute('data-promo-name');
+                
+                Swal.fire({
+                    title: 'Delete Promotion?',
+                    text: `You are about to cancel and delete the campaign "${promoName}". Prices on the customer storefront will immediately revert!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bc4749',
+                    cancelButtonColor: '#5c4e46',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const deleteUrl = `{% url 'owner_promotion_list' %}delete/${promoId}/`;
+                        deleteForm.action = deleteUrl;
+                        deleteForm.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

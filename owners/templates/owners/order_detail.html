@@ -1,0 +1,171 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}{% t "Order Details" %} #{{ order.id }} - Crafts Owner{% endblock %}
+
+{% block content %}
+<div class="mb-4 text-start">
+    <a href="{% url 'owner_order_list' %}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>{% t "Back to Orders" %}
+    </a>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="fw-bold m-0">{% t "Order Details" %} #{{ order.id }}</h1>
+            <p class="text-muted">Placed by {{ order.user.username }} ({{ order.user.email }}) on {{ order.created_at|date:"Y-m-d H:i" }}</p>
+        </div>
+        <div>
+            <span class="badge {% if order.status == 'AWAITING_VERIFICATION' %}bg-warning text-dark{% elif order.status == 'CONFIRMED' %}bg-success text-white{% elif order.status == 'SHIPPED' %}bg-primary text-white{% else %}bg-danger text-white{% endif %} px-4 py-2.5 rounded-pill fs-6">
+                {% t order.get_status_display %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 text-start">
+    <!-- Left Column: Shipping & Order Details -->
+    <div class="col-lg-7">
+        <!-- Customer & Shipping Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h4 class="fw-bold mb-4 border-bottom pb-2">
+                <i class="bi bi-person-bounding-box me-2 text-primary"></i>{% t "Customer Details" %}
+            </h4>
+            <div class="row">
+                <div class="col-sm-6 mb-3">
+                    <small class="text-muted d-block uppercase font-monospace">{% t "Full Name" %}</small>
+                    <strong class="fs-6 text-dark">{{ order.full_name }}</strong>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <small class="text-muted d-block uppercase font-monospace">{% t "Phone Number" %}</small>
+                    <strong class="fs-6 text-dark">{{ order.phone_number }}</strong>
+                </div>
+                <div class="col-12">
+                    <small class="text-muted d-block uppercase font-monospace">{% t "Shipping Address" %}</small>
+                    <div class="p-3 bg-light rounded-3 mt-1 text-muted" style="white-space: pre-wrap;">{{ order.address }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ordered Items Table Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <h4 class="fw-bold mb-4 border-bottom pb-2">
+                <i class="bi bi-list-task me-2 text-primary"></i>{% t "Items Ordered" %}
+            </h4>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">{% t "Product" %}</th>
+                            <th scope="col" class="text-center">{% t "Quantity" %}</th>
+                            <th scope="col" class="text-end">{% t "Price" %}</th>
+                            <th scope="col" class="text-end">{% t "Total" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 border overflow-hidden" style="width: 50px; height: 50px;">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-100 h-100 object-fit-cover">
+                                            {% else %}
+                                                <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=100&auto=format&fit=crop" alt="Placeholder" class="w-100 h-100 object-fit-cover">
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">{{ item.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product.category.name }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-semibold">{{ item.quantity }}</td>
+                                <td class="text-end font-monospace">${{ item.price|floatformat:2 }}</td>
+                                <td class="text-end fw-bold text-primary font-monospace">${{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="table-light">
+                            <td colspan="3" class="fw-bold text-end">{% t "Total Amount:" %}</td>
+                            <td class="text-end fw-bold text-primary fs-5 font-monospace">${{ order.total_amount|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Verification & Action Panel -->
+    <div class="col-lg-5">
+        <!-- Receipt Screenshot Panel -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h4 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-file-earmark-image me-2 text-primary"></i>{% t "Payment Receipt Screenshot" %}
+            </h4>
+            
+            {% if order.payment_screenshot %}
+                <div class="mb-3 border rounded-3 p-1 bg-light position-relative overflow-hidden cursor-pointer" data-bs-toggle="modal" data-bs-target="#receiptModal">
+                    <img src="{{ order.payment_screenshot.url }}" alt="Instapay Receipt" class="img-fluid rounded-2 hover-zoom w-100" style="max-height: 380px; object-fit: contain;">
+                    <div class="position-absolute bottom-0 start-0 w-100 text-center text-white bg-dark bg-opacity-70 py-2 small">
+                        <i class="bi bi-zoom-in me-1"></i>Click image to expand receipt
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning py-3 mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{% t "No screenshot uploaded." %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Verification Action Panel -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Verification Actions</h5>
+            
+            {% if order.status == 'AWAITING_VERIFICATION' %}
+                <p class="text-muted small">Please inspect the transaction details in the Instapay screenshot carefully before confirming.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'owner_order_update_status' order.id 'CONFIRMED' %}" class="btn btn-success btn-lg py-3">
+                        <i class="bi bi-check2-circle me-2"></i>{% t "Confirm Payment" %}
+                    </a>
+                    <a href="{% url 'owner_order_update_status' order.id 'CANCELLED' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-x-circle me-2"></i>{% t "Reject Payment" %}
+                    </a>
+                </div>
+            {% elif order.status == 'CONFIRMED' %}
+                <p class="text-muted small">The payment was confirmed. Proceed with shipping logistics for the customer.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'owner_order_update_status' order.id 'SHIPPED' %}" class="btn btn-primary btn-lg py-3">
+                        <i class="bi bi-truck me-2"></i>{% t "Mark as Shipped" %}
+                    </a>
+                    <a href="{% url 'owner_order_update_status' order.id 'CANCELLED' %}" class="btn btn-outline-danger">
+                        <i class="bi bi-x-circle me-2"></i>Cancel Order
+                    </a>
+                </div>
+            {% elif order.status == 'SHIPPED' %}
+                <div class="alert alert-info py-3 mb-0">
+                    <i class="bi bi-truck-flatbed me-2"></i>This order has been shipped to the customer. No further actions required.
+                </div>
+            {% else %}
+                <div class="alert alert-secondary py-3 mb-0">
+                    <i class="bi bi-x-octagon me-2"></i>This order has been cancelled.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Screenshot Expand Modal Overlay -->
+{% if order.payment_screenshot %}
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="receiptModalLabel">{% t "Payment Receipt Screenshot" %}</h5>
+                <button type="button" class="btn-close" data-bs-close="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img src="{{ order.payment_screenshot.url }}" alt="Payment Receipt Screenshot" class="img-fluid rounded-3 max-vh-70 object-fit-contain shadow">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

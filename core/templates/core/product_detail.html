@@ -1,0 +1,227 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load translate_tags %}
+
+{% block title %}{{ product.name }} - Crafts Artisan Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store' %}" class="text-decoration-none text-muted">Store</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'store' %}?category={{ product.category.slug }}" class="text-decoration-none text-muted">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Main Detail Row -->
+    <div class="row g-5">
+        
+        <!-- Left Column: Product Image -->
+        <div class="col-md-6">
+            <div class="detail-img-wrapper">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" id="main-product-img" alt="{{ product.name }}" class="img-fluid w-100">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" id="main-product-img" alt="Placeholder Image" class="img-fluid w-100">
+                {% endif %}
+            </div>
+            <div class="mt-3 text-center text-muted small">
+                <i class="bi bi-zoom-in me-1"></i> Hover to examine artisan craftsmanship details
+            </div>
+        </div>
+        
+        <!-- Right Column: Product Info -->
+        <div class="col-md-6 d-flex flex-column">
+            
+            <div class="mb-3">
+                <span class="badge bg-light text-primary border border-primary text-uppercase font-monospace px-3 py-2" style="font-size: 0.8rem;">
+                    {{ product.category.name }}
+                </span>
+                {% if product.status == 'DRAFT' %}
+                    <span class="badge bg-secondary text-white px-3 py-2 ms-2">DRAFT PREVIEW</span>
+                {% endif %}
+            </div>
+            
+            <h1 class="display-5 fw-bold mb-2">{{ product.name }}</h1>
+            
+            <!-- Ratings and Reviews -->
+            <div class="d-flex align-items-center mb-4">
+                <div class="stars-rating me-2 fs-5">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                </div>
+                <span class="text-muted small border-start ps-2">(12 Customer Reviews)</span>
+            </div>
+            
+            <!-- Price Block -->
+            <div class="p-3 bg-light rounded-3 mb-4 border">
+                <div class="d-flex align-items-center gap-3">
+                    {% if product.is_on_sale %}
+                        <span class="text-muted text-decoration-line-through fs-5">{{ product.price|currency }}</span>
+                        <span class="text-danger fw-bold fs-2">{{ product.active_price|currency }}</span>
+                        {% with promo_info=product.active_promotion_info %}
+                            <span class="badge bg-danger text-uppercase px-2 py-1 small">
+                                {% t "Save" %} 
+                                {% if promo_info.promotion.discount_type == 'PERCENTAGE' %}
+                                    {{ promo_info.promotion.discount_value|floatformat:0 }}%
+                                {% else %}
+                                    {{ promo_info.promotion.discount_value|currency }}
+                                {% endif %}
+                            </span>
+                        {% endwith %}
+                    {% else %}
+                        <span class="text-dark fw-bold fs-2">{{ product.price|currency }}</span>
+                    {% endif %}
+                </div>
+                
+                {% if product.is_on_sale %}
+                    <div class="mt-2 text-danger small">
+                        <i class="bi bi-clock-history me-1"></i> Promotion applied: 
+                        <strong>{{ product.active_promotion_info.promotion.name }}</strong> 
+                        (Ends in {{ product.active_promotion_info.promotion.end_date|timeuntil }})
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+                <h5 class="fw-bold border-bottom pb-2 mb-2">Description</h5>
+                <p class="text-muted">{{ product.description }}</p>
+            </div>
+
+            <!-- Add to Cart Controls -->
+            <div class="mt-auto pt-4 border-top">
+                <form action="{% url 'cart_add' product.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'cart' %}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" id="qty-minus">-</button>
+                                <input type="text" name="quantity" class="form-control text-center bg-white" id="qty-input" value="1" readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="qty-plus">+</button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <button type="submit" class="btn btn-crafts-primary w-100 py-2" id="add-to-cart-detail-btn">
+                                <i class="bi bi-cart-plus me-2"></i>{% t "Add to Cart" %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="row mt-4 g-3">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-primary fs-4"></i>
+                            <div>
+                                <small class="fw-bold d-block">{% t "Free Delivery" %}</small>
+                                <small class="text-muted">{% t "Orders over EGP 500" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-primary fs-4"></i>
+                            <div>
+                                <small class="fw-bold d-block">Secure Checkout</small>
+                                <small class="text-muted">SSL Secured payments</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="row mt-5 pt-5 border-top">
+            <div class="col-12 mb-4">
+                <h3 class="fw-bold"><i class="bi bi-star me-2 text-primary"></i>You May Also Like</h3>
+            </div>
+            {% for prod in related_products %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="product-card">
+                        <div class="card-img-wrapper">
+                            {% if prod.image %}
+                                <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <span class="category-label">{{ prod.category.name }}</span>
+                            <h5 class="product-title text-truncate">
+                                <a href="{% url 'product_detail' prod.slug %}">{{ prod.name }}</a>
+                            </h5>
+                            <div class="price-wrapper mb-3">
+                                {% if prod.is_on_sale %}
+                                    <span class="original-price text-muted text-decoration-line-through">{{ prod.price|currency }}</span>
+                                    <span class="sale-price fw-bold text-danger">{{ prod.active_price|currency }}</span>
+                                {% else %}
+                                    <span class="regular-price">{{ prod.price|currency }}</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'product_detail' prod.slug %}" class="btn btn-outline-secondary btn-sm w-100">
+                                View Item
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const qtyInput = document.getElementById('qty-input');
+        const qtyMinus = document.getElementById('qty-minus');
+        const qtyPlus = document.getElementById('qty-plus');
+        const addToCartBtn = document.getElementById('add-to-cart-detail-btn');
+        const img = document.getElementById('main-product-img');
+
+        // Quantity controls
+        qtyMinus.addEventListener('click', function() {
+            let val = parseInt(qtyInput.value);
+            if (val > 1) {
+                qtyInput.value = val - 1;
+            }
+        });
+
+        qtyPlus.addEventListener('click', function() {
+            let val = parseInt(qtyInput.value);
+            qtyInput.value = val + 1;
+        });
+
+        // Form handles cart adding backend redirect
+
+        // Soft zoom hover effect on main image
+        img.addEventListener('mousemove', function(e) {
+            const x = e.clientX - e.target.offsetLeft;
+            const y = e.clientY - e.target.offsetTop;
+            img.style.transformOrigin = `${x}px ${y}px`;
+            img.style.transform = 'scale(1.15)';
+        });
+        img.addEventListener('mouseleave', function() {
+            img.style.transform = 'scale(1)';
+        });
+    });
+</script>
+<style>
+    #main-product-img {
+        cursor: zoom-in;
+    }
+</style>
+{% endblock %}

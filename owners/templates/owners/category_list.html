@@ -1,0 +1,110 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}{% t "Category Manager" %} - {% t "Owner Portal" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold m-0"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>{% t "Category Manager" %}</h1>
+        <p class="text-muted">{% t "Manage your category listings." %}</p>
+    </div>
+    <div>
+        <a href="{% url 'owner_category_create' %}" class="btn btn-crafts-primary">
+            <i class="bi bi-plus-lg me-1"></i>{% t "Add New Category" %}
+        </a>
+    </div>
+</div>
+
+<!-- Category Table Card -->
+<div class="card owner-card p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px; text-align: center;">{% t "Icon" %}</th>
+                    <th>{% t "Category Name" %}</th>
+                    <th>{% t "Slug" %}</th>
+                    <th style="width: 150px; text-align: center;">{% t "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                    <tr>
+                        <td class="text-center">
+                            <div class="bg-primary-light text-primary rounded-3 py-2 px-3 d-inline-block border">
+                                <i class="bi {{ cat.icon|default:'bi-box' }} fs-4"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold fs-5">{{ cat.name }}</div>
+                        </td>
+                        <td>
+                            <code class="small text-secondary">{{ cat.slug }}</code>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'owner_category_edit' cat.id %}" class="btn btn-sm btn-outline-primary" title="{% t 'Edit' %}">
+                                    <i class="bi bi-pencil-square"></i> {% t "Edit" %}
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-cat-btn" 
+                                        data-cat-id="{{ cat.id }}" 
+                                        data-cat-name="{{ cat.name }}"
+                                        title="{% t 'Delete' %}">
+                                    <i class="bi bi-trash"></i> {% t "Delete" %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-grid-3x3-gap text-muted display-2 mb-3 d-block"></i>
+                            <h5 class="fw-bold">{% t "No Products Found" %}</h5>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Hidden deletion URL generator -->
+<form id="delete-cat-form" method="POST" action="" class="d-none">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.delete-cat-btn');
+        const deleteForm = document.getElementById('delete-cat-form');
+
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const catId = this.getAttribute('data-cat-id');
+                const catName = this.getAttribute('data-cat-name');
+                
+                Swal.fire({
+                    title: '{% t "Delete Category?" %}',
+                    text: `{% t "Are you sure you want to delete this category?" %} (${catName})`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bc4749',
+                    cancelButtonColor: '#5c4e46',
+                    confirmButtonText: '{% t "Yes, delete it!" %}',
+                    cancelButtonText: '{% t "Cancel" %}'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const deleteUrl = `{% url 'owner_category_list' %}delete/${catId}/`;
+                        deleteForm.action = deleteUrl;
+                        deleteForm.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

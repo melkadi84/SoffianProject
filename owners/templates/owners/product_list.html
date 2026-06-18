@@ -1,0 +1,145 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}Product Inventory - Crafts Owner Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="fw-bold m-0"><i class="bi bi-box-seam text-primary me-2"></i>Product Inventory</h1>
+        <p class="text-muted">Manage your catalog, add draft items, and toggle publish states.</p>
+    </div>
+    <div>
+        <a href="{% url 'owner_product_create' %}" class="btn btn-crafts-primary">
+            <i class="bi bi-plus-lg me-1"></i>Add New Product
+        </a>
+    </div>
+</div>
+
+<!-- Search Inventory -->
+<div class="card owner-card p-3 mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-md-9 col-sm-8">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="search" class="form-control border-start-0" placeholder="Search product name..." value="{{ search|default:'' }}">
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-4 d-grid gap-2 d-sm-flex">
+            <button type="submit" class="btn btn-dark w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+            {% if search %}
+                <a href="{% url 'owner_product_list' %}" class="btn btn-outline-secondary w-100">Reset</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Product Table -->
+<div class="card owner-card p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Image</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Created Date</th>
+                    <th>Status</th>
+                    <th style="width: 150px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prod in products %}
+                    <tr>
+                        <td>
+                            {% if prod.image %}
+                                <img src="{{ prod.image.url }}" class="rounded shadow-sm" style="width: 48px; height: 48px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; font-size: 0.75rem;">No Image</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ prod.name }}</div>
+                            <small class="text-muted">Slug: {{ prod.slug }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ prod.category.name }}</span>
+                        </td>
+                        <td class="fw-bold">{{ prod.price|currency }}</td>
+                        <td class="small">{{ prod.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            {% if prod.status == 'PUBLISHED' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Published</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-file-earmark-diff me-1"></i>Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'owner_product_edit' prod.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-product-btn" 
+                                        data-product-id="{{ prod.id }}" 
+                                        data-product-name="{{ prod.name }}"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-box-seam text-muted display-2 mb-3 d-block"></i>
+                            <h5 class="fw-bold">No Products Available</h5>
+                            <p class="small">Start building your storefront by adding your first handcrafted product.</p>
+                            <a href="{% url 'owner_product_create' %}" class="btn btn-crafts-primary btn-sm mt-2">Add Product</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Hidden deletion URL generator -->
+<form id="delete-product-form" method="POST" action="" class="d-none">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.delete-product-btn');
+        const deleteForm = document.getElementById('delete-product-form');
+
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const prodId = this.getAttribute('data-product-id');
+                const prodName = this.getAttribute('data-product-name');
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: `You are about to delete the product "${prodName}". This action cannot be undone and will delete all associated promotional schedules!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#bc4749',
+                    cancelButtonColor: '#5c4e46',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Dynamically build action and submit
+                        const deleteUrl = `{% url 'owner_product_list' %}delete/${prodId}/`;
+                        deleteForm.action = deleteUrl;
+                        deleteForm.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
