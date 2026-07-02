@@ -4,6 +4,37 @@
 
 {% block title %}Little Creators Shop - {% t "Shop Catalog" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .search-group-select {
+        max-width: 160px;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 0;
+        box-shadow: none;
+        border-color: var(--color-border) !important;
+        font-size: 1rem;
+        transition: var(--transition-smooth);
+    }
+    .search-group-input {
+        box-shadow: none;
+        font-size: 1rem;
+    }
+    @media (max-width: 576px) {
+        .search-group-select {
+            max-width: 85px;
+            font-size: 0.85rem;
+            padding-left: 0.5rem !important;
+            padding-right: 1.5rem !important;
+        }
+        .search-group-input {
+            font-size: 0.85rem;
+            padding-left: 0.5rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     
@@ -74,7 +105,7 @@
             <form method="GET" action="{% url 'store' %}">
                 <div class="input-group shadow-sm rounded-3 overflow-hidden border" style="border-color: var(--color-border) !important;">
                     <!-- Category Select Dropdown (Amazon-style) -->
-                    <select name="category" class="form-select bg-light border-0 border-end py-3 ps-3 text-muted" style="max-width: 160px; font-weight: 500; cursor: pointer; border-radius: 0; box-shadow: none; border-color: var(--color-border) !important;">
+                    <select name="category" class="form-select bg-light border-0 border-end py-2 py-md-3 ps-2 ps-md-3 text-muted search-group-select">
                         <option value="">{% t "All" %}</option>
                         {% for cat in categories %}
                             <option value="{{ cat.slug }}"{% if selected_category and selected_category.slug == cat.slug %} selected{% endif %}>{{ cat.name }}</option>
@@ -82,10 +113,10 @@
                     </select>
                     
                     <!-- Search Input -->
-                    <input type="text" name="search" class="form-control bg-white border-0 py-3 ps-4" placeholder="{% t 'Search handcrafted items...' %}" value="{{ search_query|default:'' }}" aria-label="Search" style="box-shadow: none;">
+                    <input type="text" name="search" class="form-control bg-white border-0 py-2 py-md-3 ps-3 ps-md-4 search-group-input" placeholder="{% t 'Search handcrafted items...' %}" value="{{ search_query|default:'' }}" aria-label="Search">
                     
                     <!-- Search Button -->
-                    <button class="btn btn-primary px-4 bg-primary border-0 d-flex align-items-center" type="submit">
+                    <button class="btn btn-primary px-3 px-md-4 bg-primary border-0 d-flex align-items-center search-group-btn" type="submit">
                         <i class="bi bi-search text-white fs-5"></i>
                     </button>
                 </div>
