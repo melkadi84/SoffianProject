@@ -122,9 +122,9 @@ def signup_view(request):
         # Log to terminal (using console mail backend)
         try:
             send_mail(
-                subject='Verify your Crafts Account',
+                subject='Verify your Little Creators Shop Account',
                 message=f'Hello {username},\n\nPlease verify your email by clicking: {verify_url}',
-                from_email='noreply@crafts.com',
+                from_email='noreply@littlecreatorsshop.com',
                 recipient_list=[email],
                 fail_silently=False,
             )
@@ -148,7 +148,7 @@ def verify_email_view(request, token):
         user.save()
         
         login(request, user)
-        messages.success(request, f"Welcome to Crafts, {user.username}! Your email has been verified successfully.")
+        messages.success(request, f"Welcome to Little Creators Shop, {user.username}! Your email has been verified successfully.")
         return redirect('store')
     except BadSignature:
         messages.error(request, "The verification link is invalid or has expired.")
@@ -223,7 +223,7 @@ def mock_oauth_view(request, provider):
         username = "apple_maker"
     else: # MOBILE
         phone = request.GET.get('phone', '0551234567')
-        email = f"mobile.{phone}@crafts.com"
+        email = f"mobile.{phone}@littlecreatorsshop.com"
         username = f"mobile_{phone}"
 
     # Get or create the mock social user, instantly verified
@@ -357,19 +357,32 @@ def checkout_view(request):
         return redirect('store')
 
     if request.method == 'POST':
+        payment_method = request.POST.get('payment_method', 'INSTAPAY')
         full_name = request.POST.get('full_name')
         address = request.POST.get('address')
         phone_number = request.POST.get('phone_number')
         screenshot = request.FILES.get('payment_screenshot')
         
-        if not full_name or not address or not phone_number or not screenshot:
-            messages.error(request, _t("Please fill in all details and upload the Instapay payment receipt screenshot."))
+        if not full_name or not address or not phone_number:
+            messages.error(request, _t("Please fill in all details."))
             return render(request, 'core/checkout.html', {
                 'cart_items': cart_items,
                 'subtotal': subtotal,
                 'full_name': full_name,
                 'address': address,
                 'phone_number': phone_number,
+                'payment_method': payment_method,
+            })
+            
+        if payment_method == 'INSTAPAY' and not screenshot:
+            messages.error(request, _t("Please upload the Instapay payment receipt screenshot."))
+            return render(request, 'core/checkout.html', {
+                'cart_items': cart_items,
+                'subtotal': subtotal,
+                'full_name': full_name,
+                'address': address,
+                'phone_number': phone_number,
+                'payment_method': payment_method,
             })
             
         order = Order.objects.create(
@@ -378,7 +391,8 @@ def checkout_view(request):
             address=address,
             phone_number=phone_number,
             total_amount=subtotal,
-            payment_screenshot=screenshot,
+            payment_method=payment_method,
+            payment_screenshot=screenshot if payment_method == 'INSTAPAY' else None,
             status='AWAITING_VERIFICATION'
         )
         
@@ -401,6 +415,7 @@ def checkout_view(request):
         'cart_items': cart_items,
         'subtotal': subtotal,
         'phone_number': phone_number,
+        'payment_method': 'INSTAPAY',
     })
 
 

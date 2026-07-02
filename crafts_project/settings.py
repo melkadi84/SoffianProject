@@ -178,6 +178,7 @@ from django.utils.deprecation import MiddlewareMixin
 
 class RateLimitMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        return None  # Accept many requests (disable rate limiting)
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         ip = x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR')
         is_sensitive = request.method == 'POST' and any(p in request.path for p in ['/login/', '/signup/', '/checkout/', '/mock-oauth/'])

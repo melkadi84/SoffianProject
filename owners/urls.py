@@ -23,6 +23,7 @@ urlpatterns = [
     path('themes/change-font/', views.theme_change_font, name='owner_theme_change_font'),
     
     path('orders/', views.order_list, name='owner_order_list'),
+    path('orders/bulk-delete/', views.order_bulk_delete, name='owner_order_bulk_delete'),
     path('orders/<int:pk>/', views.order_detail, name='owner_order_detail'),
     path('orders/<int:pk>/status/<str:status>/', views.order_update_status, name='owner_order_update_status'),
 ]

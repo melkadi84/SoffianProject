@@ -112,8 +112,12 @@ h1, h2, h3, h4, h5, h6, .display-font {
 }
 .product-card .card-img-wrapper {
     position: relative;
-    padding-top: 100%; /* 1:1 Aspect Ratio */
-    background-color: #f7f7f7;
+    padding-top: 0;
+    height: 200px; /* Fixed compact height, like Amazon product card images */
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
 }
 .product-card .card-img-wrapper img {
@@ -122,12 +126,29 @@ h1, h2, h3, h4, h5, h6, .display-font {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* fully show the image without cropping, like Amazon */
+    padding: 12px;
     transition: var(--transition-smooth);
 }
 .product-card:hover .card-img-wrapper img {
     transform: scale(1.05);
 }
+
+/* Card Buttons Uniformity */
+.product-card .card-body .btn {
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+    margin: 0;
+    box-sizing: border-box;
+    width: 100%;
+}
+
 .product-card .badge-sale {
     position: absolute;
     top: 12px;
@@ -364,4 +385,86 @@ h1, h2, h3, h4, h5, h6, .display-font {
 .stars-rating {
     color: #ffc107;
     font-size: 0.95rem;
+}
+
+/* Responsive / Mobile View Only Custom Refinements */
+@media (max-width: 767.98px) {
+    /* 1. Horizontal swipeable Category sidebar instead of vertical list */
+    .category-sidebar {
+        padding: 1rem !important;
+        margin-bottom: 1.5rem;
+    }
+    .category-sidebar h5 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem !important;
+    }
+    .category-sidebar .d-flex.flex-column {
+        flex-direction: row !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 8px !important;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none; /* Firefox */
+    }
+    .category-sidebar .d-flex.flex-column::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    .category-link {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 6px !important;
+    }
+    
+    /* 2. Hero banner / carousel optimizations */
+    .carousel-crafts .carousel-item {
+        height: 240px !important;
+    }
+    .carousel-crafts .carousel-caption {
+        padding: 2rem 1.5rem 1.5rem !important;
+    }
+    .carousel-crafts .carousel-caption h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* 3. Reduce detail page image height */
+    .detail-img-wrapper img {
+        height: 300px !important;
+    }
+    
+    /* 4. Optimize auth containers */
+    .auth-container {
+        margin: 2rem auto !important;
+        padding: 1.5rem !important;
+    }
+    
+    /* 5. Clean footer padding */
+    .footer-crafts {
+        padding: 2rem 0 !important;
+        margin-top: 3rem !important;
+    }
+}
+
+/* Interactive Product Gallery Slider Styles */
+.gallery-nav {
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+.detail-img-wrapper:hover .gallery-nav {
+    opacity: 1;
+}
+.gallery-nav:hover {
+    background-color: var(--color-primary) !important;
+    color: #ffffff !important;
+}
+.gallery-thumbnails .thumbnail-item {
+    transition: var(--transition-smooth);
+}
+.gallery-thumbnails .thumbnail-item:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+.gallery-thumbnails .thumbnail-item.active {
+    box-shadow: 0 0 0 2px var(--color-primary);
 }

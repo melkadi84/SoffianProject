@@ -128,6 +128,15 @@ class Product(models.Model):
         return self.name
 
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='products/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for {self.product.name} ({self.id})"
+
+
 class Promotion(models.Model):
     DISCOUNT_TYPE_CHOICES = (
         ('PERCENTAGE', 'Percentage Discount'),
@@ -210,12 +219,18 @@ class Order(models.Model):
         ('CANCELLED', 'Cancelled'),
     )
 
+    PAYMENT_METHOD_CHOICES = (
+        ('INSTAPAY', 'Instapay Transfer'),
+        ('COD', 'Cash on Delivery (COD)'),
+    )
+
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
     full_name = models.CharField(max_length=150)
     address = models.TextField()
     phone_number = models.CharField(max_length=20)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_screenshot = models.ImageField(upload_to='screenshots/')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='INSTAPAY')
+    payment_screenshot = models.ImageField(upload_to='screenshots/', blank=True, null=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='AWAITING_VERIFICATION')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

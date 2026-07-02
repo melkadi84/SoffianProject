@@ -265,6 +265,47 @@ class CraftsTestCase(TestCase):
         # Verify redirection to success page
         self.assertRedirects(response, f'/order/success/{order.id}/')
 
+    def test_checkout_cod_order_creation(self):
+        """
+        Verify that users can submit Cash on Delivery (COD) checkout forms
+        WITHOUT providing a payment screenshot to create DB orders and clear the cart.
+        """
+        from core.models import Order, OrderItem
+        
+        # Add item to cart and login
+        self.client.get(f'/cart/add/{self.product.id}/?quantity=3')
+        self.client.login(email="normal@crafts.com", password="password123")
+        
+        # Post checkout form with COD method and no screenshot
+        post_data = {
+            'payment_method': 'COD',
+            'full_name': 'John Doe',
+            'phone_number': '01222334455',
+            'address': 'Alexandria, Egypt',
+        }
+        response = self.client.post('/checkout/', post_data)
+        
+        # Verify order created in DB
+        order = Order.objects.filter(user=self.normal_user, payment_method='COD').first()
+        self.assertIsNotNone(order)
+        self.assertEqual(order.full_name, 'John Doe')
+        self.assertEqual(order.total_amount, Decimal('60.00')) # 20.00 * 3
+        self.assertEqual(order.status, 'AWAITING_VERIFICATION')
+        self.assertFalse(bool(order.payment_screenshot))
+        
+        # Verify order items
+        order_item = OrderItem.objects.filter(order=order).first()
+        self.assertIsNotNone(order_item)
+        self.assertEqual(order_item.product, self.product)
+        self.assertEqual(order_item.quantity, 3)
+        
+        # Verify cart was cleared
+        session = self.client.session
+        self.assertEqual(session.get('cart'), {})
+        
+        # Verify redirection to success page
+        self.assertRedirects(response, f'/order/success/{order.id}/')
+
     def test_owner_orders_management(self):
         """
         Verify that owners can view and update order status, and non-owners are blocked.

@@ -2,7 +2,7 @@
 {% load static %}
 {% load translate_tags %}
 
-{% block title %}{% t "Checkout" %} - Crafts{% endblock %}
+{% block title %}{% t "Checkout" %} - Little Creators Shop{% endblock %}
 
 {% block content %}
 <div class="container my-5 text-start">
@@ -69,81 +69,107 @@
             <!-- Right Column: Instapay Payment details and screenshot upload -->
             <div class="col-lg-5">
                 <div class="card border-0 shadow-sm rounded-4 p-4 position-sticky" style="top: 2rem; background: linear-gradient(145deg, #ffffff 0%, #f9fbfd 100%);">
-                    <div class="text-center mb-4">
-                        <span class="badge bg-primary px-3 py-2 text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">
-                            <i class="bi bi-shield-check me-1"></i>{% t "Instapay Payment" %}
-                        </span>
-                        <h4 class="fw-bold text-dark">{% t "Instapay Verification" %}</h4>
-                        <p class="text-muted small">{% t "Transfer the total amount to the following Instapay account:" %}</p>
-                    </div>
-
-                    <!-- Transfer Details Panel -->
-                    <div class="p-3 bg-white border border-primary rounded-4 mb-4 shadow-sm">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
-                                <i class="bi bi-person-badge fs-4 align-middle"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block uppercase font-monospace">{% t "Instapay ID:" %}</small>
-                                <strong class="fs-5 text-dark select-all">soffian.elkadi@instapay</strong>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
-                                <i class="bi bi-link-45deg fs-4 align-middle"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block uppercase font-monospace">{% t "Pay via Instapay Link" %}</small>
-                                <a href="https://ipn.eg/S/soffian.elkadi/instapay/8KvIio" target="_blank" class="fw-bold text-primary text-decoration-none">
-                                    ipn.eg/S/soffian.elkadi/...
-                                    <i class="bi bi-box-arrow-up-right small ms-1"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="d-flex align-items-center">
-                            <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
-                                <i class="bi bi-currency-dollar fs-4 align-middle"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block uppercase font-monospace">{% t "Total Amount:" %}</small>
-                                <strong class="fs-4 text-primary font-monospace">{{ subtotal|currency }}</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Beautiful QR Code Card -->
-                    <div class="text-center mb-4 py-3 border rounded-4 bg-white shadow-sm position-relative overflow-hidden">
-                        <div class="text-uppercase font-monospace text-muted small mb-2" style="letter-spacing: 1px;">
-                            <i class="bi bi-qr-code-scan me-1"></i>{% t "Scan QR to Transfer" %}
-                        </div>
-                        
-                        <div class="mx-auto mb-2" style="max-width: 180px;">
-                            <img src="{% static 'images/instapay_qr.png' %}" class="img-fluid rounded-3 border" alt="Instapay QR Code">
-                        </div>
-                        
-                        <span class="text-muted small mt-2 d-block px-2" style="font-size: 0.75rem;">
-                            {% t "Click the link to send money to" %} <br><strong class="text-dark">soffian.elkadi@instapay</strong><br>
-                            <span class="text-muted">{% t "Powered by" %} <strong>InstaPay</strong></span>
-                        </span>
-                    </div>
-
-                    <!-- Screenshot File Input -->
+                    <!-- Choose Payment Method Selector -->
                     <div class="mb-4">
-                        <label for="payment_screenshot" class="form-label fw-bold"><i class="bi bi-file-earmark-image me-1"></i>{% t "Upload Payment Screenshot" %}</label>
-                        <input type="file" name="payment_screenshot" id="payment_screenshot" class="form-control" accept="image/*" required>
-                        <div class="invalid-feedback">{% t "Please upload the confirmation screenshot." %}</div>
-                        <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">
-                            {% t "Upload a JPEG or PNG screenshot of the successful Instapay transaction." %}
-                        </small>
+                        <label class="form-label fw-bold fs-5 text-dark mb-3"><i class="bi bi-wallet2 me-2 text-primary"></i>{% t "Choose Payment Method" %}</label>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_method" id="pay_instapay" value="INSTAPAY" {% if payment_method != 'COD' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2" for="pay_instapay" style="cursor: pointer; border-width: 2px;">
+                                    <i class="bi bi-phone-vibrate fs-3"></i>
+                                    <span class="fw-bold" style="font-size: 0.9rem;">{% t "Instapay Transfer" %}</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="payment_method" id="pay_cod" value="COD" {% if payment_method == 'COD' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2" for="pay_cod" style="cursor: pointer; border-width: 2px;">
+                                    <i class="bi bi-cash-stack fs-3"></i>
+                                    <span class="fw-bold" style="font-size: 0.9rem;">{% t "Cash on Delivery (COD)" %}</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Live Image Preview (Instant feedback) -->
-                    <div class="mb-4 d-none" id="screenshot-preview-container">
-                        <small class="text-muted d-block mb-1">{% t "Receipt Preview:" %}</small>
-                        <div class="border rounded-3 p-1 bg-white" style="max-height: 180px; overflow: hidden;">
-                            <img id="screenshot-preview" src="#" alt="Screenshot Preview" class="img-fluid w-100 rounded-2" style="max-height: 170px; object-fit: contain;">
+                    <hr class="my-4">
+
+                    <!-- Instapay Details Panel & Screenshot Upload -->
+                    <div id="instapay-details-section">
+                        <div class="text-center mb-4">
+                            <span class="badge bg-primary px-3 py-2 text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">
+                                <i class="bi bi-shield-check me-1"></i>{% t "Instapay Payment" %}
+                            </span>
+                            <h4 class="fw-bold text-dark">{% t "Instapay Verification" %}</h4>
+                            <p class="text-muted small">{% t "Transfer the total amount to the following Instapay account:" %}</p>
+                        </div>
+
+                        <!-- Transfer Details Panel -->
+                        <div class="p-3 bg-white border border-primary rounded-4 mb-4 shadow-sm">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
+                                    <i class="bi bi-person-badge fs-4 align-middle"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block uppercase font-monospace">{% t "Instapay ID:" %}</small>
+                                    <strong class="fs-5 text-dark select-all">soffian.elkadi@instapay</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
+                                    <i class="bi bi-link-45deg fs-4 align-middle"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block uppercase font-monospace">{% t "Pay via Instapay Link" %}</small>
+                                    <a href="https://ipn.eg/S/soffian.elkadi/instapay/8KvIio" target="_blank" class="fw-bold text-primary text-decoration-none">
+                                        ipn.eg/S/soffian.elkadi/...
+                                        <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary-light p-2 rounded-3 me-3 text-primary text-center" style="width: 45px; height: 45px;">
+                                    <i class="bi bi-currency-dollar fs-4 align-middle"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block uppercase font-monospace">{% t "Total Amount:" %}</small>
+                                    <strong class="fs-4 text-primary font-monospace">{{ subtotal|currency }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Beautiful QR Code Card -->
+                        <div class="text-center mb-4 py-3 border rounded-4 bg-white shadow-sm position-relative overflow-hidden">
+                            <div class="text-uppercase font-monospace text-muted small mb-2" style="letter-spacing: 1px;">
+                                <i class="bi bi-qr-code-scan me-1"></i>{% t "Scan QR to Transfer" %}
+                            </div>
+                            
+                            <div class="mx-auto mb-2" style="max-width: 180px;">
+                                <img src="{% static 'images/instapay_qr.png' %}" class="img-fluid rounded-3 border" alt="Instapay QR Code">
+                            </div>
+                            
+                            <span class="text-muted small mt-2 d-block px-2" style="font-size: 0.75rem;">
+                                {% t "Click the link to send money to" %} <br><strong class="text-dark">soffian.elkadi@instapay</strong><br>
+                                <span class="text-muted">{% t "Powered by" %} <strong>InstaPay</strong></span>
+                            </span>
+                        </div>
+
+                        <!-- Screenshot File Input -->
+                        <div class="mb-4">
+                            <label for="payment_screenshot" class="form-label fw-bold"><i class="bi bi-file-earmark-image me-1"></i>{% t "Upload Payment Screenshot" %}</label>
+                            <input type="file" name="payment_screenshot" id="payment_screenshot" class="form-control" accept="image/*" required>
+                            <div class="invalid-feedback">{% t "Please upload the confirmation screenshot." %}</div>
+                            <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">
+                                {% t "Upload a JPEG or PNG screenshot of the successful Instapay transaction." %}
+                            </small>
+                        </div>
+
+                        <!-- Live Image Preview (Instant feedback) -->
+                        <div class="mb-4 d-none" id="screenshot-preview-container">
+                            <small class="text-muted d-block mb-1">{% t "Receipt Preview:" %}</small>
+                            <div class="border rounded-3 p-1 bg-white" style="max-height: 180px; overflow: hidden;">
+                                <img id="screenshot-preview" src="#" alt="Screenshot Preview" class="img-fluid w-100 rounded-2" style="max-height: 170px; object-fit: contain;">
+                            </div>
                         </div>
                     </div>
 
@@ -170,6 +196,28 @@
         const previewContainer = document.getElementById('screenshot-preview-container');
         const previewImg = document.getElementById('screenshot-preview');
         
+        const payInstapay = document.getElementById('pay_instapay');
+        const payCod = document.getElementById('pay_cod');
+        const instapaySection = document.getElementById('instapay-details-section');
+
+        function togglePaymentMethod() {
+            if (payCod.checked) {
+                instapaySection.classList.add('d-none');
+                fileInput.removeAttribute('required');
+                fileInput.value = '';
+                previewContainer.classList.add('d-none');
+            } else {
+                instapaySection.classList.remove('d-none');
+                fileInput.setAttribute('required', 'required');
+            }
+        }
+
+        payInstapay.addEventListener('change', togglePaymentMethod);
+        payCod.addEventListener('change', togglePaymentMethod);
+
+        // Run on load
+        togglePaymentMethod();
+
         fileInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {

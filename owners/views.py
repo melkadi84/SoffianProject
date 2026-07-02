@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Sum
 from django import forms
-from core.models import Product, Category, Promotion, CustomUser, Order, OrderItem, Theme
+from core.models import Product, Category, Promotion, CustomUser, Order, OrderItem, Theme, ProductImage
 from core.translations import _t
 
 # Security decorator for Owner-only access
@@ -156,8 +156,38 @@ def product_create_or_edit(request, pk=None):
     
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
+        
+        uploaded_images = request.FILES.getlist('images')
+        delete_image_ids = request.POST.getlist('delete_image_ids')
+        
+        # Calculate final image count
+        existing_extra_count = product.images.count() if product else 0
+        deleted_count = 0
+        if delete_image_ids and product:
+            deleted_count = product.images.filter(id__in=delete_image_ids).count()
+            
+        has_primary = False
+        if request.FILES.get('image'):
+            has_primary = True
+        elif product and product.image and not request.POST.get('image-clear'):
+            has_primary = True
+            
+        total_after_changes = (1 if has_primary else 0) + (existing_extra_count - deleted_count) + len(uploaded_images)
+        
+        if total_after_changes > 5:
+            form.add_error(None, "Total pictures cannot exceed 5. Please remove some photos or upload fewer.")
+            messages.error(request, "Total pictures cannot exceed 5. Please check your image selections.")
+        elif form.is_valid():
             saved_product = form.save()
+            
+            # Deletions of extra images
+            if delete_image_ids:
+                ProductImage.objects.filter(id__in=delete_image_ids, product=saved_product).delete()
+                
+            # Save new extra images
+            for img_file in uploaded_images:
+                ProductImage.objects.create(product=saved_product, image=img_file)
+                
             verb = 'updated' if product else 'published'
             messages.success(request, f'Product "{saved_product.name}" has been successfully {verb}!')
             return redirect('owner_product_list')
@@ -285,7 +315,7 @@ def theme_list(request):
     if Theme.objects.count() == 0:
         themes = [
             {
-                'name': 'Crafts Classic',
+                'name': 'Little Creators Shop Classic',
                 'primary_color': '#8c6239',
                 'primary_hover_color': '#6e4c2b',
                 'bg_color': '#f9f6f0',
@@ -467,4 +497,19 @@ def order_update_status(request, pk, status):
     order.save()
     messages.success(request, _t("Order status updated successfully."))
     return redirect('owner_order_detail', pk=order.id)
+
+
+@owner_required
+def order_bulk_delete(request):
+    """
+    Action endpoint to delete multiple orders at once.
+    """
+    if request.method == 'POST':
+        order_ids = request.POST.getlist('order_ids')
+        if order_ids:
+            deleted_count, _ = Order.objects.filter(id__in=order_ids).delete()
+            messages.success(request, f'Successfully deleted {deleted_count} order(s).')
+        else:
+            messages.warning(request, 'No orders were selected for deletion.')
+    return redirect('owner_order_list')
 

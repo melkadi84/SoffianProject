@@ -2,7 +2,7 @@
 {% load static %}
 {% load translate_tags %}
 
-{% block title %}Crafts - {% t "Shop Catalog" %}{% endblock %}
+{% block title %}Little Creators Shop - {% t "Shop Catalog" %}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -55,14 +55,13 @@
                 </div>
             {% else %}
                 <!-- Default Static Welcoming Banner -->
-                <div class="p-5 text-white bg-dark rounded-4 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(135deg, #221a15 0%, #3e2f25 100%) !important;">
-                    <div class="position-absolute top-0 end-0 opacity-10 p-5">
+                <div class="p-4 p-md-5 text-white bg-dark rounded-4 shadow-sm position-relative overflow-hidden" style="background: linear-gradient(135deg, #221a15 0%, #3e2f25 100%) !important;">
+                    <div class="position-absolute top-0 end-0 opacity-10 p-5 d-none d-md-block">
                         <i class="bi bi-palette-fill" style="font-size: 15rem;"></i>
                     </div>
                     <div class="col-md-8 py-3 position-relative" style="z-index: 1;">
-                        <h1 class="display-5 fw-bold text-white mb-3">{% t "Discover Authentic Crafts" %}</h1>
+                        <h1 class="display-5 fw-bold text-white mb-3">{% t "Discover Handcrafted Masterpieces" %}</h1>
                         <p class="fs-5 text-white-50 mb-4">{% t "Every product listed is verified 100% handmade and unique." %}</p>
-                        <a href="{% url 'owner_dashboard' %}" class="btn btn-crafts-primary btn-lg"><i class="bi bi-shop me-2"></i>{% t "Owner Portal" %}</a>
                     </div>
                 </div>
             {% endif %}
@@ -128,25 +127,27 @@
                     {% for prod in products %}
                         <div class="col">
                             <div class="product-card">
-                                <div class="card-img-wrapper">
-                                    {% if prod.is_on_sale %}
-                                        {% with promo_info=prod.active_promotion_info %}
-                                            <span class="badge-sale">
-                                                {% if promo_info.promotion.discount_type == 'PERCENTAGE' %}
-                                                    -{{ promo_info.promotion.discount_value|floatformat:0 }}%
-                                                {% else %}
-                                                    SALE
-                                                {% endif %}
-                                            </span>
-                                        {% endwith %}
-                                    {% endif %}
-                                    
-                                    {% if prod.image %}
-                                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
-                                    {% else %}
-                                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
-                                    {% endif %}
-                                </div>
+                                <a href="{% url 'product_detail' prod.slug %}" class="product-card-link text-decoration-none">
+                                    <div class="card-img-wrapper">
+                                        {% if prod.is_on_sale %}
+                                            {% with promo_info=prod.active_promotion_info %}
+                                                <span class="badge-sale">
+                                                    {% if promo_info.promotion.discount_type == 'PERCENTAGE' %}
+                                                        -{{ promo_info.promotion.discount_value|floatformat:0 }}%
+                                                    {% else %}
+                                                        SALE
+                                                    {% endif %}
+                                                </span>
+                                            {% endwith %}
+                                        {% endif %}
+                                        
+                                        {% if prod.image %}
+                                            <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                                        {% else %}
+                                            <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
+                                        {% endif %}
+                                    </div>
+                                </a>
                                 <div class="card-body text-start">
                                     <span class="category-label">{{ prod.category.name }}</span>
                                     <h4 class="product-title">
@@ -175,7 +176,7 @@
                                         <a href="{% url 'cart_add' prod.id %}?next={{ request.get_full_path|urlencode }}" class="btn btn-crafts-primary btn-sm">
                                             <i class="bi bi-cart-plus me-1"></i>{% t "Add to Cart" %}
                                         </a>
-                                        <a href="{% url 'product_detail' prod.slug %}" class="btn btn-outline-secondary btn-sm">
+                                        <a href="{% url 'product_detail' prod.slug %}" class="btn btn-crafts-outline btn-sm">
                                             <i class="bi bi-eye me-1"></i>{% t "View Details" %}
                                         </a>
                                     </div>

@@ -1,7 +1,7 @@
 {% extends 'owners/base_owner.html' %}
 {% load translate_tags %}
 
-{% block title %}{% t "Order Details" %} #{{ order.id }} - Crafts Owner{% endblock %}
+{% block title %}{% t "Order Details" %} #{{ order.id }} - Little Creators Shop Owner{% endblock %}
 
 {% block content %}
 <div class="mb-4 text-start">
@@ -30,13 +30,17 @@
                 <i class="bi bi-person-bounding-box me-2 text-primary"></i>{% t "Customer Details" %}
             </h4>
             <div class="row">
-                <div class="col-sm-6 mb-3">
+                <div class="col-sm-4 mb-3">
                     <small class="text-muted d-block uppercase font-monospace">{% t "Full Name" %}</small>
                     <strong class="fs-6 text-dark">{{ order.full_name }}</strong>
                 </div>
-                <div class="col-sm-6 mb-3">
+                <div class="col-sm-4 mb-3">
                     <small class="text-muted d-block uppercase font-monospace">{% t "Phone Number" %}</small>
                     <strong class="fs-6 text-dark">{{ order.phone_number }}</strong>
+                </div>
+                <div class="col-sm-4 mb-3">
+                    <small class="text-muted d-block uppercase font-monospace">{% t "Payment Method" %}</small>
+                    <strong class="fs-6 text-primary">{{ order.get_payment_method_display }}</strong>
                 </div>
                 <div class="col-12">
                     <small class="text-muted d-block uppercase font-monospace">{% t "Shipping Address" %}</small>
@@ -97,21 +101,31 @@
     <div class="col-lg-5">
         <!-- Receipt Screenshot Panel -->
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-            <h4 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-file-earmark-image me-2 text-primary"></i>{% t "Payment Receipt Screenshot" %}
-            </h4>
-            
-            {% if order.payment_screenshot %}
-                <div class="mb-3 border rounded-3 p-1 bg-light position-relative overflow-hidden cursor-pointer" data-bs-toggle="modal" data-bs-target="#receiptModal">
-                    <img src="{{ order.payment_screenshot.url }}" alt="Instapay Receipt" class="img-fluid rounded-2 hover-zoom w-100" style="max-height: 380px; object-fit: contain;">
-                    <div class="position-absolute bottom-0 start-0 w-100 text-center text-white bg-dark bg-opacity-70 py-2 small">
-                        <i class="bi bi-zoom-in me-1"></i>Click image to expand receipt
-                    </div>
+            {% if order.payment_method == 'COD' %}
+                <h4 class="fw-bold mb-3 border-bottom pb-2">
+                    <i class="bi bi-cash-stack me-2 text-primary"></i>{% t "Cash on Delivery" %}
+                </h4>
+                <div class="alert alert-info py-3 mb-0">
+                    <i class="bi bi-info-circle-fill me-2 text-primary fs-5 align-middle"></i>
+                    {% t "Cash on Delivery Order - No screenshot required" %}
                 </div>
             {% else %}
-                <div class="alert alert-warning py-3 mb-0">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{% t "No screenshot uploaded." %}
-                </div>
+                <h4 class="fw-bold mb-3 border-bottom pb-2">
+                    <i class="bi bi-file-earmark-image me-2 text-primary"></i>{% t "Payment Receipt Screenshot" %}
+                </h4>
+                
+                {% if order.payment_screenshot %}
+                    <div class="mb-3 border rounded-3 p-1 bg-light position-relative overflow-hidden cursor-pointer" data-bs-toggle="modal" data-bs-target="#receiptModal">
+                        <img src="{{ order.payment_screenshot.url }}" alt="Instapay Receipt" class="img-fluid rounded-2 hover-zoom w-100" style="max-height: 380px; object-fit: contain;">
+                        <div class="position-absolute bottom-0 start-0 w-100 text-center text-white bg-dark bg-opacity-70 py-2 small">
+                            <i class="bi bi-zoom-in me-1"></i>Click image to expand receipt
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning py-3 mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>{% t "No screenshot uploaded." %}
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -120,7 +134,11 @@
             <h5 class="fw-bold mb-3 border-bottom pb-2">Verification Actions</h5>
             
             {% if order.status == 'AWAITING_VERIFICATION' %}
-                <p class="text-muted small">Please inspect the transaction details in the Instapay screenshot carefully before confirming.</p>
+                {% if order.payment_method == 'COD' %}
+                    <p class="text-muted small">Please verify the customer's phone number and order details before confirming.</p>
+                {% else %}
+                    <p class="text-muted small">Please inspect the transaction details in the Instapay screenshot carefully before confirming.</p>
+                {% endif %}
                 <div class="d-grid gap-2">
                     <a href="{% url 'owner_order_update_status' order.id 'CONFIRMED' %}" class="btn btn-success btn-lg py-3">
                         <i class="bi bi-check2-circle me-2"></i>{% t "Confirm Payment" %}

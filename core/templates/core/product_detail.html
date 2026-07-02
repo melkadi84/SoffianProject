@@ -2,7 +2,7 @@
 {% load static %}
 {% load translate_tags %}
 
-{% block title %}{{ product.name }} - Crafts Artisan Store{% endblock %}
+{% block title %}{{ product.name }} - Little Creators Shop Artisan Store{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -19,13 +19,42 @@
     <!-- Main Detail Row -->
     <div class="row g-5">
         
-        <!-- Left Column: Product Image -->
+        <!-- Left Column: Product Image Gallery -->
         <div class="col-md-6">
-            <div class="detail-img-wrapper">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" id="main-product-img" alt="{{ product.name }}" class="img-fluid w-100">
-                {% else %}
-                    <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" id="main-product-img" alt="Placeholder Image" class="img-fluid w-100">
+            <div class="product-gallery">
+                <div class="detail-img-wrapper position-relative overflow-hidden">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" id="main-product-img" alt="{{ product.name }}" class="img-fluid w-100" data-original-src="{{ product.image.url }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" id="main-product-img" alt="Placeholder Image" class="img-fluid w-100" data-original-src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop">
+                    {% endif %}
+                    
+                    {% if product.images.all %}
+                        <!-- Gallery navigation icons -->
+                        <button type="button" class="gallery-nav prev-btn text-white bg-dark bg-opacity-50 border-0 rounded-circle position-absolute top-50 start-0 translate-middle-y ms-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; z-index: 10;" id="gallery-prev-btn">
+                            <i class="bi bi-chevron-left fs-5"></i>
+                        </button>
+                        <button type="button" class="gallery-nav next-btn text-white bg-dark bg-opacity-50 border-0 rounded-circle position-absolute top-50 end-0 translate-middle-y me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; z-index: 10;" id="gallery-next-btn">
+                            <i class="bi bi-chevron-right fs-5"></i>
+                        </button>
+                    {% endif %}
+                </div>
+                
+                {% if product.images.all %}
+                    <!-- Thumbnails / Switch icons -->
+                    <div class="d-flex flex-wrap gap-2 mt-3 gallery-thumbnails justify-content-center">
+                        <!-- Primary Image Thumbnail -->
+                        <div class="thumbnail-item active border rounded overflow-hidden position-relative" style="width: 70px; height: 70px; cursor: pointer; border-width: 2px !important; border-color: var(--color-primary) !important;" data-src="{% if product.image %}{{ product.image.url }}{% else %}https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop{% endif %}">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop{% endif %}" alt="{{ product.name }}" class="w-100 h-100" style="object-fit: cover;">
+                        </div>
+                        
+                        <!-- Additional Images Thumbnails -->
+                        {% for extra_img in product.images.all %}
+                            <div class="thumbnail-item border rounded overflow-hidden position-relative" style="width: 70px; height: 70px; cursor: pointer; border-color: #ddd;" data-src="{{ extra_img.image.url }}">
+                                <img src="{{ extra_img.image.url }}" alt="{{ product.name }} Extra {{ forloop.counter }}" class="w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
             <div class="mt-3 text-center text-muted small">
@@ -150,13 +179,15 @@
             {% for prod in related_products %}
                 <div class="col-md-3 col-sm-6 mb-4">
                     <div class="product-card">
-                        <div class="card-img-wrapper">
-                            {% if prod.image %}
-                                <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
-                            {% else %}
-                                <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
-                            {% endif %}
-                        </div>
+                        <a href="{% url 'product_detail' prod.slug %}" class="product-card-link text-decoration-none">
+                            <div class="card-img-wrapper">
+                                {% if prod.image %}
+                                    <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
+                                {% endif %}
+                            </div>
+                        </a>
                         <div class="card-body">
                             <span class="category-label">{{ prod.category.name }}</span>
                             <h5 class="product-title text-truncate">
@@ -170,7 +201,7 @@
                                     <span class="regular-price">{{ prod.price|currency }}</span>
                                 {% endif %}
                             </div>
-                            <a href="{% url 'product_detail' prod.slug %}" class="btn btn-outline-secondary btn-sm w-100">
+                            <a href="{% url 'product_detail' prod.slug %}" class="btn btn-crafts-outline btn-sm w-100">
                                 View Item
                             </a>
                         </div>
@@ -189,7 +220,6 @@
         const qtyInput = document.getElementById('qty-input');
         const qtyMinus = document.getElementById('qty-minus');
         const qtyPlus = document.getElementById('qty-plus');
-        const addToCartBtn = document.getElementById('add-to-cart-detail-btn');
         const img = document.getElementById('main-product-img');
 
         // Quantity controls
@@ -205,18 +235,73 @@
             qtyInput.value = val + 1;
         });
 
-        // Form handles cart adding backend redirect
+        // Gallery Switcher Logic
+        const thumbnails = document.querySelectorAll('.gallery-thumbnails .thumbnail-item');
+        const prevBtn = document.getElementById('gallery-prev-btn');
+        const nextBtn = document.getElementById('gallery-next-btn');
+        
+        if (thumbnails.length > 0 && img) {
+            let currentIndex = 0;
+            const imageUrls = Array.from(thumbnails).map(thumb => thumb.getAttribute('data-src'));
+            
+            function updateActiveImage(index) {
+                currentIndex = index;
+                // update main image src
+                img.src = imageUrls[currentIndex];
+                img.setAttribute('data-original-src', imageUrls[currentIndex]);
+                
+                // update active thumbnail class and style
+                thumbnails.forEach((thumb, i) => {
+                    if (i === currentIndex) {
+                        thumb.classList.add('active');
+                        thumb.style.borderColor = 'var(--color-primary)';
+                        thumb.style.borderWidth = '2px';
+                    } else {
+                        thumb.classList.remove('active');
+                        thumb.style.borderColor = '#ddd';
+                        thumb.style.borderWidth = '1px';
+                    }
+                });
+            }
+            
+            thumbnails.forEach((thumb, index) => {
+                thumb.addEventListener('click', function() {
+                    updateActiveImage(index);
+                });
+            });
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let nextIndex = currentIndex - 1;
+                    if (nextIndex < 0) nextIndex = imageUrls.length - 1;
+                    updateActiveImage(nextIndex);
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let nextIndex = currentIndex + 1;
+                    if (nextIndex >= imageUrls.length) nextIndex = 0;
+                    updateActiveImage(nextIndex);
+                });
+            }
+        }
 
         // Soft zoom hover effect on main image
-        img.addEventListener('mousemove', function(e) {
-            const x = e.clientX - e.target.offsetLeft;
-            const y = e.clientY - e.target.offsetTop;
-            img.style.transformOrigin = `${x}px ${y}px`;
-            img.style.transform = 'scale(1.15)';
-        });
-        img.addEventListener('mouseleave', function() {
-            img.style.transform = 'scale(1)';
-        });
+        if (img) {
+            img.addEventListener('mousemove', function(e) {
+                const rect = img.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                img.style.transformOrigin = `${x}px ${y}px`;
+                img.style.transform = 'scale(1.15)';
+            });
+            img.addEventListener('mouseleave', function() {
+                img.style.transform = 'scale(1)';
+            });
+        }
     });
 </script>
 <style>
