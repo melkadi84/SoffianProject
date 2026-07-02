@@ -189,14 +189,14 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
 
 # Session and CSRF Security
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG and os.environ.get('RENDER') == 'true'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG and os.environ.get('RENDER') == 'true'
 CSRF_COOKIE_HTTPONLY = True
 
-# HTTPS settings for Production
-if not DEBUG:
+# HTTPS settings for Production (only active on Render)
+if not DEBUG and os.environ.get('RENDER') == 'true':
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 31536000  # 1 year
