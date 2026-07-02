@@ -31,7 +31,7 @@ if ENV_PATH.exists():
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-=-u1wxg!j%&(+c)l39g*4(swx^yo+^hc9hbyn09$4ue+s#3)9(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't')
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't') and not os.environ.get('RENDER')
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
