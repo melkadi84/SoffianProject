@@ -10,6 +10,19 @@ except ImportError:
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file if it exists
+ENV_PATH = BASE_DIR / '.env'
+if ENV_PATH.exists():
+    with open(ENV_PATH) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                try:
+                    key, val = line.split('=', 1)
+                    os.environ[key] = val
+                except ValueError:
+                    pass
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
