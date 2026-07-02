@@ -68,6 +68,31 @@
         </div>
     </div>
 
+    <!-- Search Bar Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="GET" action="{% url 'store' %}">
+                <div class="input-group shadow-sm rounded-3 overflow-hidden border" style="border-color: var(--color-border) !important;">
+                    <!-- Category Select Dropdown (Amazon-style) -->
+                    <select name="category" class="form-select bg-light border-0 border-end py-3 ps-3 text-muted" style="max-width: 160px; font-weight: 500; cursor: pointer; border-radius: 0; box-shadow: none; border-color: var(--color-border) !important;">
+                        <option value="">{% t "All" %}</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.slug }}"{% if selected_category and selected_category.slug == cat.slug %} selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <!-- Search Input -->
+                    <input type="text" name="search" class="form-control bg-white border-0 py-3 ps-4" placeholder="{% t 'Search handcrafted items...' %}" value="{{ search_query|default:'' }}" aria-label="Search" style="box-shadow: none;">
+                    
+                    <!-- Search Button -->
+                    <button class="btn btn-primary px-4 bg-primary border-0 d-flex align-items-center" type="submit">
+                        <i class="bi bi-search text-white fs-5"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Main Store Layout -->
     <div class="row">
         

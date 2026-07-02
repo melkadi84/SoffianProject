@@ -366,3 +366,56 @@ class CraftsTestCase(TestCase):
         self.assertContains(response, "Soffian Elkadi")
         self.assertContains(response, "Yehia Fatouh")
 
+    def test_soffian_owner_portal_button_visibility(self):
+        """
+        Verify that the Owner Portal button is shown in the navbar only for
+        soffian.elkadi@littlecreators.shop.
+        """
+        # 1. Anonymous user - shouldn't see the warning button
+        response = self.client.get('/')
+        self.assertNotContains(response, "btn btn-warning")
+
+        # 2. Other authenticated user - shouldn't see the warning button
+        self.client.login(email="normal@crafts.com", password="password123")
+        response = self.client.get('/')
+        self.assertNotContains(response, "btn btn-warning")
+        self.client.logout()
+
+        # 3. Soffian user - should see the warning button
+        soffian_user = CustomUser.objects.create_user(
+            username="soffian",
+            email="soffian.elkadi@littlecreators.shop",
+            password="password123",
+            is_owner=False,
+            email_verified=True
+        )
+        self.client.login(email="soffian.elkadi@littlecreators.shop", password="password123")
+        response = self.client.get('/')
+        self.assertContains(response, "btn btn-warning")
+
+    def test_amazon_style_category_search_filter(self):
+        """
+        Verify that the Amazon-style category select is present and works
+        as part of the storefront search form.
+        """
+        # Get store catalog page
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        # Check that the select option is present
+        self.assertContains(response, '<select name="category"')
+        self.assertContains(response, '<option value="">All</option>')
+        self.assertContains(response, f'<option value="{self.category.slug}">{self.category.name}</option>')
+        
+        # Test filtering using search and category parameters simultaneously
+        response = self.client.get('/', {'category': self.category.slug, 'search': 'Spoon'})
+        self.assertEqual(response.status_code, 200)
+        # Wooden Spoon matches category and search
+        self.assertContains(response, self.product.name)
+        
+        # Searching for 'Fork' in 'Woodwork' (draft product, or shouldn't match any published)
+        response = self.client.get('/', {'category': self.category.slug, 'search': 'Fork'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, self.draft_product.name)
+        # Wooden Spoon doesn't match 'Fork' query
+        self.assertNotContains(response, self.product.name)
+
