@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from .models import Category, Product, Promotion, CustomUser, Order, OrderItem
+from django.utils.http import url_has_allowed_host_and_scheme
 from core.translations import _t
 
 signer = Signer()
@@ -311,7 +312,13 @@ def cart_add(request, product_id):
     
     next_url = request.GET.get('next') or request.POST.get('next')
     if next_url:
-        return redirect(next_url)
+        is_safe = url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()
+        )
+        if is_safe:
+            return redirect(next_url)
     return redirect('cart')
 
 

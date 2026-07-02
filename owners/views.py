@@ -3,11 +3,13 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Sum
 from django import forms
+from functools import wraps
 from core.models import Product, Category, Promotion, CustomUser, Order, OrderItem, Theme, ProductImage
 from core.translations import _t
 
 # Security decorator for Owner-only access
 def owner_required(view_func):
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.error(request, "Please log in first.")

@@ -177,9 +177,25 @@ CACHES = {
     }
 }
 
-# Security Headers
+# Security Headers & Cookies
 SECURE_BROWSER_XSS_HEADER = '1; mode=block'
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# Session and CSRF Security
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+
+# HTTPS settings for Production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Enforce SECRET_KEY in production
 if not os.environ.get('SECRET_KEY') and not DEBUG:
@@ -191,7 +207,6 @@ from django.utils.deprecation import MiddlewareMixin
 
 class RateLimitMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        return None  # Accept many requests (disable rate limiting)
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         ip = x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR')
         is_sensitive = request.method == 'POST' and any(p in request.path for p in ['/login/', '/signup/', '/checkout/', '/mock-oauth/'])
