@@ -83,13 +83,13 @@
                                     </div>
                                 </td>
                                 <td class="text-center fw-semibold">{{ item.quantity }}</td>
-                                <td class="text-end font-monospace">${{ item.price|floatformat:2 }}</td>
-                                <td class="text-end fw-bold text-primary font-monospace">${{ item.total_price|floatformat:2 }}</td>
+                                <td class="text-end font-monospace">EGP {{ item.price|floatformat:2 }}</td>
+                                <td class="text-end fw-bold text-primary font-monospace">EGP {{ item.total_price|floatformat:2 }}</td>
                             </tr>
                         {% endfor %}
                         <tr class="table-light">
                             <td colspan="3" class="fw-bold text-end">{% t "Total Amount:" %}</td>
-                            <td class="text-end fw-bold text-primary fs-5 font-monospace">${{ order.total_amount|floatformat:2 }}</td>
+                            <td class="text-end fw-bold text-primary fs-5 font-monospace">EGP {{ order.total_amount|floatformat:2 }}</td>
                         </tr>
                     </tbody>
                 </table>
