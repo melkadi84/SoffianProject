@@ -155,6 +155,12 @@ from whitenoise.storage import CompressedManifestStaticFilesStorage
 class LazyCompressedManifestStaticFilesStorage(CompressedManifestStaticFilesStorage):
     manifest_strict = False
 
+    def stored_name(self, name):
+        try:
+            return super().stored_name(name)
+        except ValueError:
+            return name
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
