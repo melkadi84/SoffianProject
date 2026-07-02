@@ -150,16 +150,19 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+from whitenoise.storage import CompressedManifestStaticFilesStorage
+
+class LazyCompressedManifestStaticFilesStorage(CompressedManifestStaticFilesStorage):
+    manifest_strict = False
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "crafts_project.settings.LazyCompressedManifestStaticFilesStorage",
     },
 }
-
-WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
