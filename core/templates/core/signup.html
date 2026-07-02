@@ -63,21 +63,21 @@
         <div class="row g-2 mb-4">
             <!-- Google Sign-up -->
             <div class="col-6">
-                <a href="{% url 'mock_oauth' 'google' %}" class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
+                <a href="{% url 'mock_oauth' 'google' %}" class="btn btn-social-google w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
                     <i class="bi bi-google"></i> {% t "Google" %}
                 </a>
             </div>
             
             <!-- Apple Sign-up -->
             <div class="col-6">
-                <a href="{% url 'mock_oauth' 'apple' %}" class="btn btn-outline-dark w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
+                <a href="{% url 'mock_oauth' 'apple' %}" class="btn btn-social-apple w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
                     <i class="bi bi-apple"></i> {% t "Apple" %}
                 </a>
             </div>
             
             <!-- Mobile Instant Login -->
             <div class="col-12 mt-2">
-                <button class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#mobileCollapse" aria-expanded="false" aria-controls="mobileCollapse">
+                <button class="btn btn-social-mobile w-100 py-2 d-flex align-items-center justify-content-center gap-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#mobileCollapse" aria-expanded="false" aria-controls="mobileCollapse">
                     <i class="bi bi-phone"></i> {% t "Mobile Phone Instant Signup" %}
                 </button>
                 <div class="collapse mt-2" id="mobileCollapse">

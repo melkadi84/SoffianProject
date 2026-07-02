@@ -468,3 +468,55 @@ h1, h2, h3, h4, h5, h6, .display-font {
 .gallery-thumbnails .thumbnail-item.active {
     box-shadow: 0 0 0 2px var(--color-primary);
 }
+
+/* Premium Social Auth Buttons */
+.btn-social-google {
+    background-color: #ffffff;
+    color: #3c4043;
+    border: 1px solid #e0e0e0;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: var(--transition-smooth);
+}
+.btn-social-google:hover {
+    background-color: #f8f9fa;
+    border-color: #d2d2d2;
+    color: #202124;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+.btn-social-google .bi-google {
+    color: #db4437; /* Google Red */
+}
+
+.btn-social-apple {
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: var(--transition-smooth);
+}
+.btn-social-apple:hover {
+    background-color: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.btn-social-mobile {
+    background-color: #ffffff;
+    color: #5c4e46;
+    border: 1px solid #ced4da;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: var(--transition-smooth);
+}
+.btn-social-mobile:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
