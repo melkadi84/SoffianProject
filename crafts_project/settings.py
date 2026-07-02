@@ -28,10 +28,12 @@ if ENV_PATH.exists():
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-=-u1wxg!j%&(+c)l39g*4(swx^yo+^hc9hbyn09$4ue+s#3)9(')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("The SECRET_KEY environment variable is not set. Please define it in your .env file.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't') and not os.environ.get('RENDER')
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't') and not os.environ.get('RENDER')
 
 ALLOWED_HOSTS = [
     'little-creators-shop.onrender.com', 
@@ -203,9 +205,34 @@ if not DEBUG and os.environ.get('RENDER') == 'true':
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-# Enforce SECRET_KEY in production
-if not os.environ.get('SECRET_KEY') and not DEBUG:
-    raise ValueError("The SECRET_KEY environment variable must be set in production!")
+# Logging configuration to capture errors in production console
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 from django.core.cache import cache
 from django.http import JsonResponse, HttpResponse
