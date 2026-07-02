@@ -54,75 +54,9 @@
             </button>
         </form>
 
-        <div class="text-center position-relative my-4">
-            <hr class="text-muted">
-            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">{% t "OR SIGN UP WITH" %}</span>
-        </div>
-
-        <!-- Social Sign-up Buttons -->
-        <div class="row g-2 mb-4">
-            <!-- Google Sign-up -->
-            <div class="col-6">
-                <a href="{% url 'mock_oauth' 'google' %}" class="btn btn-social-google w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
-                    <i class="bi bi-google"></i> {% t "Google" %}
-                </a>
-            </div>
-            
-            <!-- Apple Sign-up -->
-            <div class="col-6">
-                <a href="{% url 'mock_oauth' 'apple' %}" class="btn btn-social-apple w-100 py-2 d-flex align-items-center justify-content-center gap-2 small">
-                    <i class="bi bi-apple"></i> {% t "Apple" %}
-                </a>
-            </div>
-            
-            <!-- Mobile Instant Login -->
-            <div class="col-12 mt-2">
-                <button class="btn btn-social-mobile w-100 py-2 d-flex align-items-center justify-content-center gap-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#mobileCollapse" aria-expanded="false" aria-controls="mobileCollapse">
-                    <i class="bi bi-phone"></i> {% t "Mobile Phone Instant Signup" %}
-                </button>
-                <div class="collapse mt-2" id="mobileCollapse">
-                    <div class="card card-body border-secondary p-3 bg-light">
-                        <div class="input-group mb-2">
-                            <span class="input-group-text bg-white"><i class="bi bi-telephone text-muted"></i></span>
-                            <input type="text" id="mock-phone-input" class="form-control" placeholder="Enter Phone Number (e.g. 0559998877)">
-                        </div>
-                        <button type="button" id="mock-mobile-btn" class="btn btn-dark btn-sm w-100">
-                            {% t "Instant Register & Log In" %}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="text-center">
             <p class="small text-muted mb-0">{% t "Already have an account?" %} <a href="{% url 'login' %}" class="text-primary fw-bold text-decoration-none">{% t "Sign In" %}</a></p>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mockPhoneBtn = document.getElementById('mock-mobile-btn');
-        const mockPhoneInput = document.getElementById('mock-phone-input');
-
-        mockPhoneBtn.addEventListener('click', function() {
-            const phone = mockPhoneInput.value.trim();
-            if (phone.length < 5) {
-                Swal.fire({
-                    title: "{% t 'Invalid Phone Number' %}",
-                    text: "{% t 'Please enter a valid phone number (at least 5 digits) for mock mobile login.' %}",
-                    icon: 'warning',
-                    confirmButtonColor: '#8c6239'
-                });
-                return;
-            }
-            
-            // Redirect to mock mobile signin
-            const url = `{% url 'mock_oauth' 'mobile' %}?phone=${encodeURIComponent(phone)}`;
-            window.location.href = url;
-        });
-    });
-</script>
 {% endblock %}
