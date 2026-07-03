@@ -54,3 +54,26 @@ def currency(value):
         return f"{formatted_val} ج.م"
     return f"EGP {formatted_val}"
 
+
+from django.utils.safestring import mark_safe
+
+@register.simple_tag
+def render_stars(rating):
+    try:
+        r = float(rating)
+    except (ValueError, TypeError):
+        r = 0.0
+    full_stars = min(5, max(0, int(r)))
+    half_star = 1 if (r - full_stars) >= 0.25 and full_stars < 5 else 0
+    empty_stars = max(0, 5 - full_stars - half_star)
+    
+    html = ""
+    for _ in range(full_stars):
+        html += '<i class="bi bi-star-fill"></i>'
+    if half_star:
+        html += '<i class="bi bi-star-half"></i>'
+    for _ in range(empty_stars):
+        html += '<i class="bi bi-star"></i>'
+    return mark_safe(html)
+
+

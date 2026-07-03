@@ -24,7 +24,7 @@ def owner_required(view_func):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'category', 'description', 'price', 'image', 'status']
+        fields = ['name', 'category', 'description', 'price', 'image', 'status', 'rating', 'review_count']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Rustic Ceramic Tea Pot'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
@@ -32,6 +32,8 @@ class ProductForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.0', 'max': '5.0', 'placeholder': '4.5'}),
+            'review_count': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'placeholder': '12'}),
         }
 
 

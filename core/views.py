@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
-from .models import Category, Product, Promotion, CustomUser, Order, OrderItem
+from .models import Category, Product, Promotion, CustomUser, Order, OrderItem, Review
 from django.utils.http import url_has_allowed_host_and_scheme
 from core.translations import _t
 
@@ -71,9 +71,12 @@ def product_detail_view(request, slug):
         status='PUBLISHED'
     ).exclude(id=product.id)[:4]
 
+    reviews = product.product_reviews.all().order_by('-created_at')
+
     context = {
         'product': product,
         'related_products': related_products,
+        'reviews': reviews,
     }
     return render(request, 'core/product_detail.html', context)
 
@@ -441,5 +444,50 @@ def about_view(request):
     Renders the About Us page with owner profiles and startup narrative.
     """
     return render(request, 'core/about.html')
+
+
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def add_product_review(request, product_id):
+    """
+    Handles user submission of feedback/rating reviews.
+    """
+    product = get_object_or_404(Product, id=product_id)
+    rating_val = request.POST.get('rating')
+    comment_val = request.POST.get('comment', '').strip()
+    
+    if not rating_val:
+        messages.error(request, _t("Please select a rating option."))
+        return redirect('product_detail', slug=product.slug)
+        
+    try:
+        rating = int(rating_val)
+        if rating < 1 or rating > 5:
+            raise ValueError()
+    except ValueError:
+        messages.error(request, _t("Invalid rating value."))
+        return redirect('product_detail', slug=product.slug)
+        
+    if not comment_val:
+        messages.error(request, _t("Please write a comment."))
+        return redirect('product_detail', slug=product.slug)
+        
+    # Check if user already reviewed this product
+    if Review.objects.filter(product=product, user=request.user).exists():
+        messages.warning(request, _t("You have already reviewed this product."))
+        return redirect('product_detail', slug=product.slug)
+        
+    Review.objects.create(
+        product=product,
+        user=request.user,
+        rating=rating,
+        comment=comment_val
+    )
+    
+    messages.success(request, _t("Thank you! Your review has been submitted successfully."))
+    return redirect('product_detail', slug=product.slug)
+
 
 

@@ -110,6 +110,24 @@
                 </div>
                 {% endif %}
 
+                <!-- Manual Review Override -->
+                <div class="row g-3 mb-3 text-start">
+                    <div class="col-md-6">
+                        <label for="{{ form.rating.id_for_label }}" class="form-label small fw-bold">Manual Rating override (0.0 to 5.0)</label>
+                        {{ form.rating }}
+                        {% if form.rating.errors %}
+                            <div class="text-danger small mt-1">{{ form.rating.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.review_count.id_for_label }}" class="form-label small fw-bold">Manual Reviews Count</label>
+                        {{ form.review_count }}
+                        {% if form.review_count.errors %}
+                            <div class="text-danger small mt-1">{{ form.review_count.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <!-- Product Status -->
                 <div class="mb-4">
                     <label for="{{ form.status.id_for_label }}" class="form-label small fw-bold">Status</label>
@@ -165,13 +183,11 @@
                             </h4>
                             
                             <!-- Rating Mockup -->
-                            <div class="stars-rating mb-3">
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-half"></i>
-                                <span class="text-muted small ms-1">(0)</span>
+                            <div class="stars-rating mb-3 text-warning">
+                                <span id="preview-stars">
+                                    {% render_stars product.rating|default:4.5 %}
+                                </span>
+                                <span class="text-muted small ms-1" id="preview-reviews-count">({{ product.review_count|default:12 }})</span>
                             </div>
                             
                             <div class="price-wrapper mb-3">

@@ -210,13 +210,9 @@
                                         <a href="{% url 'product_detail' prod.slug %}">{{ prod.name }}</a>
                                     </h4>
                                     
-                                    <div class="stars-rating mb-3">
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-half"></i>
-                                        <span class="text-muted small ms-1">(12)</span>
+                                    <div class="stars-rating mb-3 text-warning">
+                                        {% render_stars prod.rating %}
+                                        <span class="text-muted small ms-1">({{ prod.review_count }})</span>
                                     </div>
                                     
                                     <div class="price-wrapper mb-3">

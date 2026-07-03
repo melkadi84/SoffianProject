@@ -78,14 +78,10 @@
             
             <!-- Ratings and Reviews -->
             <div class="d-flex align-items-center mb-4">
-                <div class="stars-rating me-2 fs-5">
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-half"></i>
+                <div class="stars-rating me-2 fs-5 text-warning">
+                    {% render_stars product.rating %}
                 </div>
-                <span class="text-muted small border-start ps-2">(12 Customer Reviews)</span>
+                <span class="text-muted small border-start ps-2">({{ product.review_count }} Customer Reviews)</span>
             </div>
             
             <!-- Price Block -->
@@ -167,6 +163,72 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <!-- Reviews and Feedback Section -->
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-lg-7">
+            <h3 class="fw-bold mb-4">
+                <i class="bi bi-chat-right-text-fill me-2 text-primary"></i>Customer Reviews ({{ reviews|length }})
+            </h3>
+            
+            <div class="reviews-list">
+                {% for review in reviews %}
+                    <div class="review-item mb-4 pb-3 border-bottom text-start">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="fw-bold text-dark">{{ review.user.username|default:review.user.email }}</span>
+                                <span class="text-muted small ms-2">{{ review.created_at|date:"N j, Y" }}</span>
+                            </div>
+                            <div class="stars-rating text-warning small">
+                                {% render_stars review.rating %}
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0">{{ review.comment }}</p>
+                    </div>
+                {% empty %}
+                    <div class="py-5 text-muted text-center bg-white rounded border mb-4 shadow-sm" style="border: 1px solid rgba(0,0,0,.08) !important;">
+                        <i class="bi bi-chat-square-quote fs-1 d-block mb-3 text-primary"></i>
+                        <p class="mb-0 fw-semibold">No reviews yet for this product.</p>
+                        <small class="text-muted">Be the first to share your experience!</small>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card p-4 shadow-sm border-0 bg-white text-start" style="border: 1px solid rgba(0,0,0,.08) !important; border-radius: 12px;">
+                <h4 class="fw-bold mb-3">Write a Customer Review</h4>
+                {% if request.user.is_authenticated %}
+                    <form action="{% url 'add_product_review' product.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="rating-select" class="form-label fw-semibold small">Star Rating</label>
+                            <select name="rating" id="rating-select" class="form-select select-rating" required>
+                                <option value="" disabled selected>Select star rating...</option>
+                                <option value="5">5 Stars (Excellent)</option>
+                                <option value="4">4 Stars (Good)</option>
+                                <option value="3">3 Stars (Average)</option>
+                                <option value="2">2 Stars (Below Average)</option>
+                                <option value="1">1 Star (Poor)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment-textarea" class="form-label fw-semibold small">Review Message</label>
+                            <textarea name="comment" id="comment-textarea" rows="4" class="form-control" placeholder="What did you like or dislike about this product? Tell us your feedback..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-crafts-primary w-100 py-2.5 fw-bold shadow-sm">
+                            Submit Review
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="py-4 text-center">
+                        <p class="text-muted mb-3">Please sign in to write a review for this product.</p>
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-dark px-4 btn-sm fw-bold">Sign In to Review</a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 

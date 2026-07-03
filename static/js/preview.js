@@ -97,4 +97,45 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Select rating & review_count inputs & preview spans
+    const ratingInput = document.getElementById('id_rating');
+    const reviewCountInput = document.getElementById('id_review_count');
+    const prevStars = document.getElementById('preview-stars');
+    const prevReviewsCount = document.getElementById('preview-reviews-count');
+
+    // Update rating stars
+    if (ratingInput && prevStars) {
+        ratingInput.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if (isNaN(val) || val < 0) return;
+            const fullStars = Math.min(5, Math.max(0, Math.floor(val)));
+            const halfStar = (val - fullStars) >= 0.25 && fullStars < 5 ? 1 : 0;
+            const emptyStars = Math.max(0, 5 - fullStars - halfStar);
+            
+            let html = '';
+            for (let i = 0; i < fullStars; i++) {
+                html += '<i class="bi bi-star-fill"></i>';
+            }
+            if (halfStar) {
+                html += '<i class="bi bi-star-half"></i>';
+            }
+            for (let i = 0; i < emptyStars; i++) {
+                html += '<i class="bi bi-star"></i>';
+            }
+            prevStars.innerHTML = html;
+        });
+    }
+
+    // Update reviews count
+    if (reviewCountInput && prevReviewsCount) {
+        reviewCountInput.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (!isNaN(val) && val >= 0) {
+                prevReviewsCount.textContent = `(${val})`;
+            } else {
+                prevReviewsCount.textContent = '(0)';
+            }
+        });
+    }
 });

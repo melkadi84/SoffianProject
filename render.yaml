@@ -3,7 +3,7 @@ services:
     name: crafts-project
     runtime: python
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn crafts_project.wsgi:application
+    startCommand: mkdir -p media/products media/screenshots && cp -rn media_backup/* media/ 2>/dev/null || true && gunicorn crafts_project.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9

@@ -419,3 +419,52 @@ class CraftsTestCase(TestCase):
         # Wooden Spoon doesn't match 'Fork' query
         self.assertNotContains(response, self.product.name)
 
+    def test_product_reviews_flow(self):
+        """
+        Verify that users can submit product reviews and rating average and review_count are updated.
+        Verify manual overrides for owner work.
+        """
+        from core.models import Review
+        # Login normal user
+        self.client.login(email="normal@crafts.com", password="password123")
+        
+        # Submit review
+        post_data = {
+            'rating': '5',
+            'comment': 'Awesome handcrafted woodwork, loved the quality!'
+        }
+        response = self.client.post(f'/product/{self.product.id}/review/', post_data)
+        self.assertRedirects(response, f'/product/{self.product.slug}/')
+        
+        # Verify review created in DB
+        review = Review.objects.filter(product=self.product, user=self.normal_user).first()
+        self.assertIsNotNone(review)
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(review.comment, 'Awesome handcrafted woodwork, loved the quality!')
+        
+        # Verify product rating and review count updated automatically
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.review_count, 1)
+        self.assertEqual(float(self.product.rating), 5.0)
+
+        # Owner login and manual override check
+        self.client.login(email="owner@crafts.com", password="password123")
+        
+        post_data = {
+            'name': 'Wooden Spoon Updated',
+            'category': self.category.id,
+            'description': 'Updated description',
+            'price': '25.00',
+            'status': 'PUBLISHED',
+            'rating': '4.8',
+            'review_count': '150',
+        }
+        response = self.client.post(f'/owners/products/edit/{self.product.id}/', post_data)
+        self.assertEqual(response.status_code, 302) # Redirect to product list
+        
+        # Verify changes in DB
+        self.product.refresh_from_db()
+        self.assertEqual(float(self.product.rating), 4.8)
+        self.assertEqual(self.product.review_count, 150)
+
+
