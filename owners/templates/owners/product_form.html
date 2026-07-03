@@ -1,5 +1,6 @@
 {% extends 'owners/base_owner.html' %}
 {% load static %}
+{% load translate_tags %}
 
 {% block title %}
     {% if is_edit %}Edit Product - "{{ product.name }}"{% else %}Create Product{% endif %} - Owner Portal

@@ -467,4 +467,10 @@ class CraftsTestCase(TestCase):
         self.assertEqual(float(self.product.rating), 4.8)
         self.assertEqual(self.product.review_count, 150)
 
+        # Verify templates render successfully without syntax errors
+        response = self.client.get('/owners/products/create/')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(f'/owners/products/edit/{self.product.id}/')
+        self.assertEqual(response.status_code, 200)
+
 
