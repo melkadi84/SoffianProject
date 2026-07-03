@@ -55,8 +55,8 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2) # wait, max_digits=10, decimal_places=2 is the correct django parameter name. Let's make sure.
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='DRAFT')
-    rating = models.DecimalField(max_digits=3, decimal_places=2, default=4.50)
-    review_count = models.IntegerField(default=12)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=4.50, blank=True, null=True)
+    review_count = models.IntegerField(default=12, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,6 +70,10 @@ class Product(models.Model):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
+        if self.rating is None:
+            self.rating = 4.50
+        if self.review_count is None:
+            self.review_count = 12
         super().save(*args, **kwargs)
 
     @property
