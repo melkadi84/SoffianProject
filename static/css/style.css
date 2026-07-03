@@ -519,3 +519,48 @@ h1, h2, h3, h4, h5, h6, .display-font {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
+
+
+/* Modern Dashboard Action Buttons */
+.btn-dashboard-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50px; /* Modern Pill shape */
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    text-decoration: none;
+}
+
+.btn-dashboard-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #a07246 100%);
+    color: #ffffff !important;
+}
+.btn-dashboard-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(140, 98, 57, 0.3);
+}
+
+.btn-dashboard-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+}
+.btn-dashboard-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-dashboard-dark {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    color: #ffffff !important;
+}
+.btn-dashboard-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(31, 41, 55, 0.3);
+}
+
