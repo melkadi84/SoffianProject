@@ -129,13 +129,20 @@
                     </div>
                 </div>
 
-                <!-- Product Status -->
-                <div class="mb-4">
-                    <label for="{{ form.status.id_for_label }}" class="form-label small fw-bold">Status</label>
-                    {{ form.status }}
-                    <div class="form-text small text-muted">Draft items are only visible to the owner. Published items are instantly visible on the store page.</div>
-                    {% if form.status.errors %}
-                        <div class="text-danger small mt-1">{{ form.status.errors|first }}</div>
+                <!-- Product Status (Toggle Switcher) -->
+                <div class="mb-4 text-start">
+                    <label class="form-label small fw-bold d-block">Status</label>
+                    <div class="form-check form-switch card p-3 border shadow-sm bg-white d-flex align-items-center flex-row gap-3">
+                        <div class="flex-grow-1">
+                            <span class="fw-semibold text-dark d-block">Publish Product</span>
+                            <small class="text-muted">Toggle on to make the product instantly visible to customers, or off to keep it as a private draft.</small>
+                        </div>
+                        <div class="form-check-size" style="transform: scale(1.4); padding-right: 1.5rem;">
+                            {{ form.is_published }}
+                        </div>
+                    </div>
+                    {% if form.is_published.errors %}
+                        <div class="text-danger small mt-1">{{ form.is_published.errors|first }}</div>
                     {% endif %}
                 </div>
 
@@ -171,6 +178,9 @@
                             
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" id="preview-image" data-original-src="{{ product.image.url }}" alt="Preview">
+                                <button class="btn btn-sm btn-light position-absolute bottom-0 end-0 m-2 px-2 py-1 shadow-sm btn-fit-toggle" style="z-index: 10; font-size: 0.7rem; border-radius: 4px; font-weight: 600;" onclick="event.preventDefault(); toggleImageFit(this);">
+                                    <i class="bi bi-arrows-angle-contract me-1"></i>Fit
+                                </button>
                             {% else %}
                                 <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" id="preview-image" alt="Preview">
                             {% endif %}
@@ -326,6 +336,23 @@
             });
         });
     });
+
+    function toggleImageFit(btn) {
+        const wrapper = btn.closest('.card-img-wrapper');
+        if (!wrapper) return;
+        const img = wrapper.querySelector('img');
+        if (!img) return;
+        
+        if (img.style.objectFit === 'contain') {
+            img.style.objectFit = 'cover';
+            img.style.padding = '0';
+            btn.innerHTML = '<i class="bi bi-arrows-angle-contract me-1"></i>Fit';
+        } else {
+            img.style.objectFit = 'contain';
+            img.style.padding = '8px';
+            btn.innerHTML = '<i class="bi bi-arrows-angle-expand me-1"></i>Fill';
+        }
+    }
 </script>
 <style>
     .border-dashed {

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('id_category');
     const descInput = document.getElementById('id_description');
     const imageInput = document.getElementById('id_image');
-    const statusSelect = document.getElementById('id_status');
+    const statusToggle = document.getElementById('status-toggle');
 
     // Select preview placeholders
     const prevName = document.getElementById('preview-name');
@@ -61,12 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Update status badge
-    if (statusSelect) {
-        statusSelect.addEventListener('change', function() {
-            const status = this.value;
+    if (statusToggle) {
+        statusToggle.addEventListener('change', function() {
+            const isPublished = this.checked;
             if (prevStatus) {
-                prevStatus.textContent = status;
-                if (status === 'PUBLISHED') {
+                prevStatus.textContent = isPublished ? 'PUBLISHED' : 'DRAFT';
+                if (isPublished) {
                     prevStatus.className = 'badge bg-success text-white';
                     if (prevStatusDot) prevStatusDot.className = 'status-dot bg-success';
                 } else {

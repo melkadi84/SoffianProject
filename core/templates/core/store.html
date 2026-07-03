@@ -199,6 +199,9 @@
                                         
                                         {% if prod.image %}
                                             <img src="{{ prod.image.url }}" alt="{{ prod.name }}">
+                                            <button class="btn btn-sm btn-light position-absolute bottom-0 end-0 m-2 px-2 py-1 shadow-sm btn-fit-toggle" style="z-index: 10; font-size: 0.7rem; border-radius: 4px; font-weight: 600;" onclick="event.preventDefault(); toggleImageFit(this);">
+                                                <i class="bi bi-arrows-angle-contract me-1"></i>Fit
+                                            </button>
                                         {% else %}
                                             <img src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop" alt="Placeholder">
                                         {% endif %}
@@ -252,5 +255,22 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Backend toast notifications trigger automatically -->
+<script>
+    function toggleImageFit(btn) {
+        const wrapper = btn.closest('.card-img-wrapper');
+        if (!wrapper) return;
+        const img = wrapper.querySelector('img');
+        if (!img) return;
+        
+        if (img.style.objectFit === 'contain') {
+            img.style.objectFit = 'cover';
+            img.style.padding = '0';
+            btn.innerHTML = '<i class="bi bi-arrows-angle-contract me-1"></i>Fit';
+        } else {
+            img.style.objectFit = 'contain';
+            img.style.padding = '8px';
+            btn.innerHTML = '<i class="bi bi-arrows-angle-expand me-1"></i>Fill';
+        }
+    }
+</script>
 {% endblock %}

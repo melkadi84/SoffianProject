@@ -22,19 +22,43 @@ def owner_required(view_func):
 
 # Forms definitions
 class ProductForm(forms.ModelForm):
+    is_published = forms.BooleanField(
+        required=False,
+        label="Published Status",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch', 'id': 'status-toggle'})
+    )
+
     class Meta:
         model = Product
-        fields = ['name', 'category', 'description', 'price', 'image', 'status', 'rating', 'review_count']
+        fields = ['name', 'category', 'description', 'price', 'image', 'rating', 'review_count']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Rustic Ceramic Tea Pot'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Describe the handcraft details...'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
             'rating': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.0', 'max': '5.0', 'placeholder': '4.5'}),
             'review_count': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'placeholder': '12'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.initial['rating'] = 4.5
+            self.initial['review_count'] = 12
+            self.initial['is_published'] = False
+        else:
+            self.initial['is_published'] = (self.instance.status == 'PUBLISHED')
+
+    def save(self, commit=True):
+        product = super().save(commit=False)
+        if self.cleaned_data.get('is_published'):
+            product.status = 'PUBLISHED'
+        else:
+            product.status = 'DRAFT'
+        if commit:
+            product.save()
+        return product
 
 
 class CategoryForm(forms.ModelForm):
