@@ -13,3 +13,8 @@ services:
         generateValue: true
       - key: ALLOWED_HOSTS
         value: "*"
+    disk:
+      name: crafts-media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1
+

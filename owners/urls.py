@@ -26,4 +26,6 @@ urlpatterns = [
     path('orders/bulk-delete/', views.order_bulk_delete, name='owner_order_bulk_delete'),
     path('orders/<int:pk>/', views.order_detail, name='owner_order_detail'),
     path('orders/<int:pk>/status/<str:status>/', views.order_update_status, name='owner_order_update_status'),
+    path('configuration/', views.app_configuration_edit, name='owner_app_configuration'),
+    path('categories/ajax-create/', views.ajax_category_create, name='owner_category_ajax_create'),
 ]

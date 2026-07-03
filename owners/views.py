@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from django import forms
 from functools import wraps
-from core.models import Product, Category, Promotion, CustomUser, Order, OrderItem, Theme, ProductImage
+from core.models import Product, Category, Promotion, CustomUser, Order, OrderItem, Theme, ProductImage, AppConfiguration
 from core.translations import _t
 
 # Security decorator for Owner-only access
@@ -43,6 +43,37 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Ceramics & Pottery'}),
             'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., bi-bezier2'}),
         }
+
+
+class AppConfigurationForm(forms.ModelForm):
+    class Meta:
+        model = AppConfiguration
+        fields = [
+            'artisan_promise_title_en', 'artisan_promise_title_ar',
+            'artisan_promise_text_en', 'artisan_promise_text_ar',
+            'footer_description_en', 'footer_description_ar',
+            'free_delivery_title_en', 'free_delivery_title_ar',
+            'free_delivery_subtitle_en', 'free_delivery_subtitle_ar',
+            'secure_checkout_title_en', 'secure_checkout_title_ar',
+            'secure_checkout_subtitle_en', 'secure_checkout_subtitle_ar',
+            'empty_cart_title_en', 'empty_cart_title_ar',
+            'empty_cart_text_en', 'empty_cart_text_ar',
+            'founder1_name_en', 'founder1_name_ar',
+            'founder1_role_en', 'founder1_role_ar',
+            'founder1_bio_en', 'founder1_bio_ar',
+            'founder2_name_en', 'founder2_name_ar',
+            'founder2_role_en', 'founder2_role_ar',
+            'founder2_bio_en', 'founder2_bio_ar',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if 'bio' in field_name or 'text' in field_name or 'description' in field_name:
+                field.widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+            else:
+                field.widget = forms.TextInput(attrs={'class': 'form-control'})
+
 
 
 class PromotionForm(forms.ModelForm):
@@ -117,6 +148,7 @@ def owner_dashboard(request):
     recent_products = Product.objects.all().order_by('-created_at')[:5]
     recent_promotions = Promotion.objects.all().order_by('-created_at')[:5]
     recent_orders = Order.objects.all().order_by('-created_at')[:5]
+    categories_with_counts = Category.objects.annotate(product_count=Count('products')).order_by('-product_count')
 
     context = {
         'total_products': total_products,
@@ -129,6 +161,7 @@ def owner_dashboard(request):
         'recent_products': recent_products,
         'recent_promotions': recent_promotions,
         'recent_orders': recent_orders,
+        'categories_with_counts': categories_with_counts,
         'now': now,
     }
     return render(request, 'owners/dashboard.html', context)
@@ -514,4 +547,48 @@ def order_bulk_delete(request):
         else:
             messages.warning(request, 'No orders were selected for deletion.')
     return redirect('owner_order_list')
+
+
+@owner_required
+def app_configuration_edit(request):
+    config = AppConfiguration.get_solo()
+    if request.method == 'POST':
+        form = AppConfigurationForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Application configurations updated successfully.")
+            return redirect('owner_app_configuration')
+    else:
+        form = AppConfigurationForm(instance=config)
+        
+    return render(request, 'owners/app_configuration.html', {'form': form, 'config': config})
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+
+@owner_required
+@require_POST
+def ajax_category_create(request):
+    """
+    AJAX endpoint for creating a new Category on-the-fly.
+    """
+    name = request.POST.get('name', '').strip()
+    if not name:
+        return JsonResponse({'success': False, 'error': 'Category name is required.'}, status=400)
+        
+    if Category.objects.filter(name__iexact=name).exists():
+        return JsonResponse({'success': False, 'error': 'A category with this name already exists.'}, status=400)
+        
+    try:
+        category = Category.objects.create(name=name)
+        return JsonResponse({
+            'success': True,
+            'id': category.id,
+            'name': category.name
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 

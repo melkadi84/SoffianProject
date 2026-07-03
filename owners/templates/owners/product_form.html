@@ -42,9 +42,14 @@
 
                 <!-- Product Category & Price -->
                 <div class="row g-3 mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-6 text-start">
                         <label for="{{ form.category.id_for_label }}" class="form-label small fw-bold">Category</label>
-                        {{ form.category }}
+                        <div class="input-group">
+                            {{ form.category }}
+                            <button class="btn btn-outline-primary" type="button" id="btn-add-category-on-the-fly" data-bs-toggle="modal" data-bs-target="#addCategoryModal" title="Add Category on the fly">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
                         {% if form.category.errors %}
                             <div class="text-danger small mt-1">{{ form.category.errors|first }}</div>
                         {% endif %}
@@ -193,13 +198,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal for Add Category on the Fly -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered text-start">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="addCategoryModalLabel"><i class="bi bi-folder-plus text-primary me-2"></i>Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ajax-category-form" onsubmit="event.preventDefault();">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="ajax-category-name" class="form-label small fw-bold">Category Name</label>
+                        <input type="text" class="form-control" id="ajax-category-name" name="name" required placeholder="e.g. Wooden Carvings">
+                        <div class="text-danger small mt-1 d-none" id="ajax-category-error"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-save-ajax-category">Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <!-- Include live preview script -->
 <script src="{% static 'js/preview.js' %}"></script>
 
-<!-- Edit initialization trigger logic -->
+<!-- Edit initialization trigger logic + AJAX Category on the fly -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const nameInput = document.getElementById('id_name');
@@ -212,6 +243,71 @@
         if (priceInput && priceInput.value) priceInput.dispatchEvent(new Event('input'));
         if (categorySelect) categorySelect.dispatchEvent(new Event('change'));
         if (statusSelect) statusSelect.dispatchEvent(new Event('change'));
+
+        // Handle AJAX Category Creation
+        const saveBtn = document.getElementById('btn-save-ajax-category');
+        const categoryNameInput = document.getElementById('ajax-category-name');
+        const categoryErrorDiv = document.getElementById('ajax-category-error');
+        const categoryModalEl = document.getElementById('addCategoryModal');
+
+        saveBtn.addEventListener('click', function() {
+            const nameVal = categoryNameInput.value.trim();
+            if (!nameVal) {
+                categoryErrorDiv.textContent = "Category name is required.";
+                categoryErrorDiv.classList.remove('d-none');
+                return;
+            }
+            categoryErrorDiv.classList.add('d-none');
+
+            const formData = new FormData();
+            formData.append('name', nameVal);
+            formData.append('csrfmiddlewaretoken', document.querySelector('#ajax-category-form [name=csrfmiddlewaretoken]').value);
+
+            fetch("{% url 'owner_category_ajax_create' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    // Success: Add option and select it
+                    const newOption = new Option(result.body.name, result.body.id, true, true);
+                    categorySelect.add(newOption);
+                    categorySelect.dispatchEvent(new Event('change'));
+
+                    // Hide modal
+                    const modal = bootstrap.Modal.getInstance(categoryModalEl);
+                    modal.hide();
+
+                    // Clean input
+                    categoryNameInput.value = '';
+
+                    // SweetAlert toast notification
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Category "' + result.body.name + '" created successfully!'
+                    });
+                } else {
+                    // Display error
+                    categoryErrorDiv.textContent = result.body.error || "An error occurred.";
+                    categoryErrorDiv.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                categoryErrorDiv.textContent = "Communication error with server.";
+                categoryErrorDiv.classList.remove('d-none');
+            });
+        });
     });
 </script>
 <style>

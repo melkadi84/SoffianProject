@@ -252,3 +252,125 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.product.name} (Order #{self.order.id})"
 
+
+from django.utils.translation import get_language
+
+class AppConfiguration(models.Model):
+    # Artisan Promise
+    artisan_promise_title_en = models.CharField(max_length=200, default="Artisan Promise")
+    artisan_promise_title_ar = models.CharField(max_length=200, default="عهد الحرفيين")
+    artisan_promise_text_en = models.TextField(default="Every product listed is verified 100% handmade and unique.")
+    artisan_promise_text_ar = models.TextField(default="كل منتج معروض هنا مضمون أنه مصنوع يدوياً 100% وفريد من نوعه.")
+    
+    footer_description_en = models.TextField(default="A premium marketplace dedicated to authentic handcrafts, wooden carvings, rustic pottery, and artisan masterpieces. Bringing human touch back into shopping.")
+    footer_description_ar = models.TextField(default="منصة متميزة مخصصة للمشغولات اليدوية الأصيلة، والمنحوتات الخشبية، والفخار الريفي، والقطع الفنية الفريدة. نعيد اللمسة الإنسانية إلى التسوق.")
+
+    # Delivery & Checkout
+    free_delivery_title_en = models.CharField(max_length=200, default="Free Delivery")
+    free_delivery_title_ar = models.CharField(max_length=200, default="شحن مجاني")
+    free_delivery_subtitle_en = models.CharField(max_length=200, default="Orders over EGP 500")
+    free_delivery_subtitle_ar = models.CharField(max_length=200, default="للطلبات فوق 500 ج.م")
+    
+    secure_checkout_title_en = models.CharField(max_length=200, default="Secure Checkout")
+    secure_checkout_title_ar = models.CharField(max_length=200, default="دفع آمن")
+    secure_checkout_subtitle_en = models.CharField(max_length=200, default="SSL Secured payments")
+    secure_checkout_subtitle_ar = models.CharField(max_length=200, default="مدفوعات مؤمنة بـ SSL")
+
+    # Cart
+    empty_cart_title_en = models.CharField(max_length=200, default="Your Cart is Empty")
+    empty_cart_title_ar = models.CharField(max_length=200, default="سلة التسوق فارغة")
+    empty_cart_text_en = models.TextField(default="Discover authentic wooden carvings, rustic pottery, and hand-woven masterpieces. Add them to your cart to checkout!")
+    empty_cart_text_ar = models.TextField(default="اكتشف المنحوتات الخشبية الأصيلة، والفخار الريفي، والتحف المنسوجة يدوياً. أضفها إلى سلتك لإتمام الشراء!")
+
+    # Founders
+    founder1_name_en = models.CharField(max_length=200, default="Soffian Elkadi")
+    founder1_name_ar = models.CharField(max_length=200, default="سفيان القاضي")
+    founder1_role_en = models.CharField(max_length=200, default="Co-Founder & Lead Designer")
+    founder1_role_ar = models.CharField(max_length=200, default="شريك مؤسس ومصمم رئيسي")
+    founder1_bio_en = models.TextField(default="Soffian is an award-winning ceramicist and digital designer with over a decade of experience styling premium homeware. He steers the visual identity and product quality assurance at Little Creators Shop.")
+    founder1_bio_ar = models.TextField(default="سفيان هو خبير فخار ومصمم رقمي حائز على جوائز، يتمتع بخبرة تزيد عن عقد في تصميم الأدوات المنزلية الفاخرة. يقود الهوية البصرية وضمان جودة المنتجات في Little Creators Shop.")
+
+    founder2_name_en = models.CharField(max_length=200, default="Yehia Fatouh")
+    founder2_name_ar = models.CharField(max_length=200, default="يحيى فتوح")
+    founder2_role_en = models.CharField(max_length=200, default="Co-Founder & Operations Head")
+    founder2_role_ar = models.CharField(max_length=200, default="شريك مؤسس ومدير العمليات")
+    founder2_bio_en = models.TextField(default="Yehia brings years of supply-chain and logistics management experience in regional craft trade. He supervises our onboarding pipelines, logistics partnerships, and verification guidelines.")
+    founder2_bio_ar = models.TextField(default="يحيى يجلب سنوات من الخبرة في إدارة العمليات وسلاسل الإمداد اللوجستية في تجارة الحرف اليدوية الإقليمية. ويشرف على خطوط الإمداد والشراكات اللوجستية وإرشادات التحقق.")
+
+    @classmethod
+    def get_solo(cls):
+        obj, created = cls.objects.get_or_create(id=1)
+        return obj
+
+    def _get_field_by_lang(self, field_base):
+        lang = get_language() or 'en'
+        lang_short = lang.split('-')[0].lower()
+        attr_name = f"{field_base}_{lang_short}"
+        if hasattr(self, attr_name):
+            return getattr(self, attr_name)
+        return getattr(self, f"{field_base}_en")
+
+    @property
+    def artisan_promise_title(self):
+        return self._get_field_by_lang('artisan_promise_title')
+
+    @property
+    def artisan_promise_text(self):
+        return self._get_field_by_lang('artisan_promise_text')
+
+    @property
+    def footer_description(self):
+        return self._get_field_by_lang('footer_description')
+
+    @property
+    def free_delivery_title(self):
+        return self._get_field_by_lang('free_delivery_title')
+
+    @property
+    def free_delivery_subtitle(self):
+        return self._get_field_by_lang('free_delivery_subtitle')
+
+    @property
+    def secure_checkout_title(self):
+        return self._get_field_by_lang('secure_checkout_title')
+
+    @property
+    def secure_checkout_subtitle(self):
+        return self._get_field_by_lang('secure_checkout_subtitle')
+
+    @property
+    def empty_cart_title(self):
+        return self._get_field_by_lang('empty_cart_title')
+
+    @property
+    def empty_cart_text(self):
+        return self._get_field_by_lang('empty_cart_text')
+
+    @property
+    def founder1_name(self):
+        return self._get_field_by_lang('founder1_name')
+
+    @property
+    def founder1_role(self):
+        return self._get_field_by_lang('founder1_role')
+
+    @property
+    def founder1_bio(self):
+        return self._get_field_by_lang('founder1_bio')
+
+    @property
+    def founder2_name(self):
+        return self._get_field_by_lang('founder2_name')
+
+    @property
+    def founder2_role(self):
+        return self._get_field_by_lang('founder2_role')
+
+    @property
+    def founder2_bio(self):
+        return self._get_field_by_lang('founder2_bio')
+
+    def __str__(self):
+        return "Application Configuration"
+
+

@@ -150,8 +150,8 @@
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-truck text-primary fs-4"></i>
                             <div>
-                                <small class="fw-bold d-block">{% t "Free Delivery" %}</small>
-                                <small class="text-muted">{% t "Orders over EGP 500" %}</small>
+                                <small class="fw-bold d-block">{{ app_config.free_delivery_title }}</small>
+                                <small class="text-muted">{{ app_config.free_delivery_subtitle }}</small>
                             </div>
                         </div>
                     </div>
@@ -159,8 +159,8 @@
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-shield-check text-primary fs-4"></i>
                             <div>
-                                <small class="fw-bold d-block">Secure Checkout</small>
-                                <small class="text-muted">SSL Secured payments</small>
+                                <small class="fw-bold d-block">{{ app_config.secure_checkout_title }}</small>
+                                <small class="text-muted">{{ app_config.secure_checkout_subtitle }}</small>
                             </div>
                         </div>
                     </div>

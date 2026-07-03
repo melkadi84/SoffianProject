@@ -1,0 +1,213 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}Application Configuration - Little Creators Shop Control Center{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="fw-bold m-0"><i class="bi bi-gear-fill text-primary me-2"></i>Application Configuration</h1>
+    <p class="text-muted">Manage global statements, delivery threshold titles, checkout badges, and founder biography information.</p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-5">
+    <div class="card-header bg-light border-0 py-3">
+        <ul class="nav nav-tabs card-header-tabs border-bottom-0" id="configTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold text-dark px-4 py-2.5" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
+                    <i class="bi bi-shop me-2 text-primary"></i>General & Artisan Promise
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-dark px-4 py-2.5" id="checkout-tab" data-bs-toggle="tab" data-bs-target="#checkout" type="button" role="tab" aria-controls="checkout" aria-selected="false">
+                    <i class="bi bi-truck me-2 text-success"></i>Delivery & Checkout
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-dark px-4 py-2.5" id="founders-tab" data-bs-toggle="tab" data-bs-target="#founders" type="button" role="tab" aria-controls="founders" aria-selected="false">
+                    <i class="bi bi-people-fill me-2 text-info"></i>Founders (About Us)
+                </button>
+            </li>
+        </ul>
+    </div>
+    
+    <form method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="card-body p-4">
+            <div class="tab-content" id="configTabsContent">
+                
+                <!-- 1. GENERAL & ARTISAN PROMISE -->
+                <div class="tab-pane fade show active text-start" id="general" role="tabpanel" aria-labelledby="general-tab">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="bi bi-award-fill me-1"></i>Artisan Promise Config</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Artisan Promise Title (English)</label>
+                            {{ form.artisan_promise_title_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Artisan Promise Title (Arabic)</label>
+                            {{ form.artisan_promise_title_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Artisan Promise Statement (English)</label>
+                            {{ form.artisan_promise_text_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Artisan Promise Statement (Arabic)</label>
+                            {{ form.artisan_promise_text_ar }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="bi bi-info-circle-fill me-1"></i>Footer Description</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Footer Description (English)</label>
+                            {{ form.footer_description_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Footer Description (Arabic)</label>
+                            {{ form.footer_description_ar }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 2. DELIVERY & CHECKOUT -->
+                <div class="tab-pane fade text-start" id="checkout" role="tabpanel" aria-labelledby="checkout-tab">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-success"><i class="bi bi-truck me-1"></i>Free Delivery Statements</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Free Delivery Title (English)</label>
+                            {{ form.free_delivery_title_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Free Delivery Title (Arabic)</label>
+                            {{ form.free_delivery_title_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Free Delivery Subtitle / Threshold (English)</label>
+                            {{ form.free_delivery_subtitle_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Free Delivery Subtitle / Threshold (Arabic)</label>
+                            {{ form.free_delivery_subtitle_ar }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-success"><i class="bi bi-shield-lock-fill me-1"></i>Secure Checkout Badges</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Secure Checkout Title (English)</label>
+                            {{ form.secure_checkout_title_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Secure Checkout Title (Arabic)</label>
+                            {{ form.secure_checkout_title_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Secure Checkout Subtitle (English)</label>
+                            {{ form.secure_checkout_subtitle_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Secure Checkout Subtitle (Arabic)</label>
+                            {{ form.secure_checkout_subtitle_ar }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-success"><i class="bi bi-cart-x-fill me-1"></i>Empty Cart Copy</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Empty Cart Title (English)</label>
+                            {{ form.empty_cart_title_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Empty Cart Title (Arabic)</label>
+                            {{ form.empty_cart_title_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Empty Cart Recommendation Text (English)</label>
+                            {{ form.empty_cart_text_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Empty Cart Recommendation Text (Arabic)</label>
+                            {{ form.empty_cart_text_ar }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3. FOUNDERS (ABOUT US) -->
+                <div class="tab-pane fade text-start" id="founders" role="tabpanel" aria-labelledby="founders-tab">
+                    <div class="row g-4">
+                        <!-- Founder 1 -->
+                        <div class="col-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-info"><i class="bi bi-person-fill me-1"></i>Founder 1 Profile</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Name (English)</label>
+                            {{ form.founder1_name_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Name (Arabic)</label>
+                            {{ form.founder1_name_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Role/Title (English)</label>
+                            {{ form.founder1_role_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Role/Title (Arabic)</label>
+                            {{ form.founder1_role_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Bio Narrative (English)</label>
+                            {{ form.founder1_bio_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 1 Bio Narrative (Arabic)</label>
+                            {{ form.founder1_bio_ar }}
+                        </div>
+                        
+                        <!-- Founder 2 -->
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2 text-info"><i class="bi bi-person-fill me-1"></i>Founder 2 Profile</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Name (English)</label>
+                            {{ form.founder2_name_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Name (Arabic)</label>
+                            {{ form.founder2_name_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Role/Title (English)</label>
+                            {{ form.founder2_role_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Role/Title (Arabic)</label>
+                            {{ form.founder2_role_ar }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Bio Narrative (English)</label>
+                            {{ form.founder2_bio_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Founder 2 Bio Narrative (Arabic)</label>
+                            {{ form.founder2_bio_ar }}
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light border-0 py-3 text-end">
+            <button type="submit" class="btn btn-crafts-primary px-5 py-2">
+                <i class="bi bi-check-circle-fill me-1"></i>Save Configuration
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

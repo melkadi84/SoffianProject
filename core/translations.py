@@ -127,6 +127,7 @@ TRANSLATIONS = {
         'Confirm Payment': 'تأكيد الدفع',
         'Reject Payment': 'رفض الدفع',
         'Orders Manager': 'إدارة الطلبات',
+        'Application Configuration': 'إعدادات التطبيق',
         'Awaiting Verification': 'في انتظار التحقق',
         'Confirmed / Paid': 'تم التأكيد / مدفوع',
         'Shipped': 'تم الشحن',

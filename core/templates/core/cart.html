@@ -128,9 +128,9 @@
             <div class="mb-4">
                 <i class="bi bi-cart-x text-muted display-1"></i>
             </div>
-            <h3 class="fw-bold mb-2">{% t "Your Cart is Empty" %}</h3>
+            <h3 class="fw-bold mb-2">{{ app_config.empty_cart_title }}</h3>
             <p class="text-muted mb-4 col-lg-6 mx-auto">
-                {% t "Discover authentic wooden carvings, rustic pottery, and hand-woven masterpieces. Add them to your cart to checkout!" %}
+                {{ app_config.empty_cart_text }}
             </p>
             <a href="{% url 'store' %}" class="btn btn-crafts-primary px-5 py-3 rounded-pill btn-lg">
                 <i class="bi bi-shop me-2"></i>{% t "Continue Shopping" %}

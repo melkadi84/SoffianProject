@@ -30,3 +30,21 @@ def cart_processor(request):
         'cart_item_count': total_items
     }
 
+
+from core.models import AppConfiguration
+
+def app_config_processor(request):
+    """
+    Context processor that fetches the singleton Application Configuration
+    and exposes it under the 'app_config' context variable.
+    """
+    try:
+        config = AppConfiguration.get_solo()
+    except Exception:
+        config = None
+        
+    return {
+        'app_config': config
+    }
+
+
