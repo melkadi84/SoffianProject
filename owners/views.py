@@ -856,6 +856,10 @@ def owner_database_backup_restore(request):
     Renders the Backup & Restore dashboard.
     Handles backup generation (export ZIP of CSVs) and restore (import ZIP of CSVs).
     """
+    from django.conf import settings
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+
     models_to_backup = [
         ('users', CustomUser),
         ('categories', Category),
@@ -873,32 +877,80 @@ def owner_database_backup_restore(request):
         
         # --- EXPORT BACKUP ---
         if action == 'export':
+            selected_categories = request.POST.getlist('categories')
+            if not selected_categories:
+                # Default to all categories + media if none specified (for backward compatibility / tests)
+                selected_categories = [name for name, _ in models_to_backup] + ['media']
             try:
                 # Create ZIP in-memory
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                     for filename, model_class in models_to_backup:
-                        # Generate CSV content for the model
-                        csv_output = io.StringIO()
-                        writer = csv.writer(csv_output)
-                        
-                        # Get all fields
-                        fields = [f.name for f in model_class._meta.fields]
-                        writer.writerow(fields)
-                        
-                        for obj in model_class.objects.all():
-                            row = []
-                            for field in fields:
-                                val = getattr(obj, field)
-                                if val is None:
-                                    row.append('')
-                                elif isinstance(val, timezone.datetime):
-                                    row.append(val.isoformat())
-                                else:
-                                    row.append(str(val))
-                            writer.writerow(row)
-                        
-                        zip_file.writestr(f"{filename}.csv", csv_output.getvalue())
+                        if filename in selected_categories:
+                            # Generate CSV content for the model
+                            csv_output = io.StringIO()
+                            writer = csv.writer(csv_output)
+                            
+                            # Get all fields
+                            fields = [f.name for f in model_class._meta.fields]
+                            writer.writerow(fields)
+                            
+                            for obj in model_class.objects.all():
+                                row = []
+                                for field in fields:
+                                    val = getattr(obj, field)
+                                    if val is None:
+                                        row.append('')
+                                    elif isinstance(val, timezone.datetime):
+                                        row.append(val.isoformat())
+                                    else:
+                                        row.append(str(val))
+                                writer.writerow(row)
+                            
+                            zip_file.writestr(f"{filename}.csv", csv_output.getvalue())
+                    
+                    # Backup media if requested
+                    if 'media' in selected_categories:
+                        # 1. Walk settings.MEDIA_ROOT locally
+                        if os.path.exists(settings.MEDIA_ROOT):
+                            for root_dir, dirs, files in os.walk(settings.MEDIA_ROOT):
+                                for file in files:
+                                    local_path = os.path.join(root_dir, file)
+                                    rel_path = os.path.relpath(local_path, settings.MEDIA_ROOT)
+                                    zip_path = f"media/{rel_path.replace(os.sep, '/')}"
+                                    try:
+                                        with open(local_path, 'rb') as f:
+                                            zip_file.writestr(zip_path, f.read())
+                                    except Exception:
+                                        pass
+
+                        # 2. Walk default_storage referenced files (in case they are stored in Cloudinary/remote)
+                        referenced_files = set()
+                        try:
+                            if 'products' in selected_categories:
+                                for p in Product.objects.all():
+                                    if p.image and p.image.name:
+                                        referenced_files.add(p.image.name)
+                            if 'product_images' in selected_categories:
+                                for pi in ProductImage.objects.all():
+                                    if pi.image and pi.image.name:
+                                        referenced_files.add(pi.image.name)
+                            if 'orders' in selected_categories:
+                                for o in Order.objects.all():
+                                    if o.payment_screenshot and o.payment_screenshot.name:
+                                        referenced_files.add(o.payment_screenshot.name)
+                        except Exception:
+                            pass
+
+                        for file_name in referenced_files:
+                            zip_path = f"media/{file_name}"
+                            if zip_path not in zip_file.namelist():
+                                try:
+                                    if default_storage.exists(file_name):
+                                        with default_storage.open(file_name, 'rb') as f:
+                                            zip_file.writestr(zip_path, f.read())
+                                except Exception:
+                                    pass
                 
                 zip_buffer.seek(0)
                 timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
@@ -911,6 +963,11 @@ def owner_database_backup_restore(request):
                 
         # --- IMPORT/RESTORE BACKUP ---
         elif action == 'restore':
+            selected_categories = request.POST.getlist('categories')
+            if not selected_categories:
+                # Default to all categories + media if none specified (for backward compatibility / tests)
+                selected_categories = [name for name, _ in models_to_backup] + ['media']
+
             backup_file = request.FILES.get('backup_file')
             if not backup_file:
                 messages.error(request, "Please upload a valid backup ZIP file.")
@@ -933,27 +990,35 @@ def owner_database_backup_restore(request):
                         if filename in file_list:
                             csv_contents[name] = zip_file.read(filename).decode('utf-8')
                     
-                    # Validate that we have at least user and configuration data
-                    if 'users' not in csv_contents or 'app_configurations' not in csv_contents:
-                        messages.error(request, "Invalid backup ZIP: missing core files.")
-                        return redirect('owner_database_backup_restore')
+                    # Validate that the selected DB categories actually exist in the zip file
+                    for name in selected_categories:
+                        if name != 'media':
+                            filename = f"{name}.csv"
+                            if filename not in file_list:
+                                messages.error(request, f"Selected category '{name}' not found in the backup ZIP.")
+                                return redirect('owner_database_backup_restore')
                     
                     # Perform restoration in transaction to ensure atomic rollback on failure
                     with transaction.atomic():
-                        # Delete existing records in reverse topological order
-                        OrderItem.objects.all().delete()
-                        Order.objects.all().delete()
-                        Promotion.objects.all().delete()
-                        ProductImage.objects.all().delete()
-                        Product.objects.all().delete()
-                        Category.objects.all().delete()
-                        CustomUser.objects.all().delete()
-                        Theme.objects.all().delete()
-                        AppConfiguration.objects.all().delete()
+                        # Delete existing records of selected categories in reverse topological order
+                        delete_order = [
+                            ('order_items', OrderItem),
+                            ('orders', Order),
+                            ('promotions', Promotion),
+                            ('product_images', ProductImage),
+                            ('products', Product),
+                            ('categories', Category),
+                            ('users', CustomUser),
+                            ('themes', Theme),
+                            ('app_configurations', AppConfiguration),
+                        ]
+                        for name, model_class in delete_order:
+                            if name in selected_categories:
+                                model_class.objects.all().delete()
                         
                         # Restore in topological order
                         for name, model_class in models_to_backup:
-                            if name in csv_contents:
+                            if name in selected_categories and name in csv_contents:
                                 reader = csv.DictReader(io.StringIO(csv_contents[name]))
                                 for row in reader:
                                     data = {}
@@ -967,6 +1032,21 @@ def owner_database_backup_restore(request):
                                             
                                     obj = model_class(**data)
                                     obj.save()
+
+                        # Restore media if selected
+                        if 'media' in selected_categories:
+                            zip_prefix = 'media/'
+                            for zip_member in file_list:
+                                if zip_member.startswith(zip_prefix) and zip_member != zip_prefix:
+                                    storage_path = zip_member[len(zip_prefix):]
+                                    if storage_path:
+                                        file_content = zip_file.read(zip_member)
+                                        if default_storage.exists(storage_path):
+                                            try:
+                                                default_storage.delete(storage_path)
+                                            except Exception:
+                                                pass
+                                        default_storage.save(storage_path, ContentFile(file_content))
                                     
                 messages.success(request, "Database has been successfully restored from backup.")
                 return redirect('owner_database_backup_restore')

@@ -19,23 +19,133 @@
                 </div>
                 <div>
                     <h3 class="h5 fw-bold m-0">{% t "Export Database Backup" %}</h3>
-                    <p class="text-muted small m-0">Download a full snapshot of your store's data.</p>
+                    <p class="text-muted small m-0">Download a snapshot of your store's data.</p>
                 </div>
             </div>
             
-            <p class="text-muted small mb-4">
-                This will generate a `.zip` archive containing separate CSV files for users, products, categories, orders, themes, promotions, and settings. You can download and save this file to restore your store state at any time.
-            </p>
-            
-            <div class="mt-auto">
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="export">
+            <form method="POST" action="" id="backup-form" class="h-100 d-flex flex-column">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="export">
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                        <label class="form-label fw-bold text-secondary m-0">{% t "Select Areas to Backup" %}</label>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="select-all-backup" checked>
+                            <label class="form-check-label small fw-semibold text-primary" for="select-all-backup">{% t "Select All" %}</label>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-1">
+                        <!-- Users -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="users" id="backup-users" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-users">
+                                    <i class="bi bi-people-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Users" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Categories -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="categories" id="backup-categories" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-categories">
+                                    <i class="bi bi-tags-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Categories" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Products -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="products" id="backup-products" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-products">
+                                    <i class="bi bi-box-seam-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Products" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Product Images -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="product_images" id="backup-product-images" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-product-images">
+                                    <i class="bi bi-images text-muted"></i>
+                                    <span class="small fw-medium">{% t "Product Images" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Themes -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="themes" id="backup-themes" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-themes">
+                                    <i class="bi bi-palette-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Themes" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Promotions -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="promotions" id="backup-promotions" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-promotions">
+                                    <i class="bi bi-percent text-muted"></i>
+                                    <span class="small fw-medium">{% t "Promotions" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Orders -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="orders" id="backup-orders" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-orders">
+                                    <i class="bi bi-cart-check-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Orders" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Order Items -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="order_items" id="backup-order-items" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-order-items">
+                                    <i class="bi bi-list-ul text-muted"></i>
+                                    <span class="small fw-medium">{% t "Order Items" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- App Configurations -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="app_configurations" id="backup-configs" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-configs">
+                                    <i class="bi bi-gear-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "App Configurations" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Media Files -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border border-primary-light bg-primary-light-subtle rounded-3 transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-backup" type="checkbox" name="categories" value="media" id="backup-media" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="backup-media">
+                                    <i class="bi bi-file-earmark-image text-primary"></i>
+                                    <span class="small fw-semibold text-primary">{% t "Media Files (Images & Screenshots)" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-auto">
                     <button type="submit" class="btn btn-crafts-primary w-100 py-2 fw-semibold">
                         <i class="bi bi-file-earmark-zip me-1"></i>{% t "Generate Backup" %}
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -52,19 +162,133 @@
                 </div>
             </div>
             
-            <div class="alert alert-warning border-0 small mb-4 py-2" style="border-left: 4px solid #ffc107 !important;">
+            <div class="alert alert-warning border-0 small mb-3 py-2" style="border-left: 4px solid #ffc107 !important;">
                 <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                <strong>Warning:</strong> {% t "This action is irreversible!" %} Uploading a backup will delete and overwrite all current database records.
+                <strong>Warning:</strong> {% t "This action is irreversible!" %} {% t "Uploading a backup will delete and overwrite all current database records." %}
             </div>
 
-            <form method="POST" action="" enctype="multipart/form-data" id="restore-form">
+            <form method="POST" action="" enctype="multipart/form-data" id="restore-form" class="h-100 d-flex flex-column">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="restore">
-                <div class="mb-4">
-                    <label for="backup_file" class="form-label fw-semibold text-secondary">Select Backup ZIP File</label>
+                
+                <div class="mb-3">
+                    <label for="backup_file" class="form-label fw-semibold text-secondary mb-1">Select Backup ZIP File</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="bi bi-file-earmark-zip text-warning"></i></span>
                         <input class="form-control border-start-0" type="file" id="backup_file" name="backup_file" accept=".zip" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                        <label class="form-label fw-bold text-secondary m-0">{% t "Select Areas to Restore" %}</label>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="select-all-restore" checked>
+                            <label class="form-check-label small fw-semibold text-warning" for="select-all-restore">{% t "Select All" %}</label>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-1">
+                        <!-- Users -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="users" id="restore-users" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-users">
+                                    <i class="bi bi-people-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Users" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Categories -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="categories" id="restore-categories" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-categories">
+                                    <i class="bi bi-tags-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Categories" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Products -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="products" id="restore-products" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-products">
+                                    <i class="bi bi-box-seam-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Products" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Product Images -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="product_images" id="restore-product-images" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-product-images">
+                                    <i class="bi bi-images text-muted"></i>
+                                    <span class="small fw-medium">{% t "Product Images" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Themes -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="themes" id="restore-themes" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-themes">
+                                    <i class="bi bi-palette-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Themes" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Promotions -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="promotions" id="restore-promotions" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-promotions">
+                                    <i class="bi bi-percent text-muted"></i>
+                                    <span class="small fw-medium">{% t "Promotions" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Orders -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="orders" id="restore-orders" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-orders">
+                                    <i class="bi bi-cart-check-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "Orders" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Order Items -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="order_items" id="restore-order-items" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-order-items">
+                                    <i class="bi bi-list-ul text-muted"></i>
+                                    <span class="small fw-medium">{% t "Order Items" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- App Configurations -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border rounded-3 hover-bg-light transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="app_configurations" id="restore-configs" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-configs">
+                                    <i class="bi bi-gear-fill text-muted"></i>
+                                    <span class="small fw-medium">{% t "App Configurations" %}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Media Files -->
+                        <div class="col-6">
+                            <div class="form-check p-2 border border-warning-light bg-warning-light-subtle rounded-3 transition-all d-flex align-items-center gap-2">
+                                <input class="form-check-input ms-0 me-2 category-checkbox-restore" type="checkbox" name="categories" value="media" id="restore-media" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 m-0 cursor-pointer" for="restore-media">
+                                    <i class="bi bi-file-earmark-image text-warning"></i>
+                                    <span class="small fw-semibold text-warning">{% t "Media Files (Images & Screenshots)" %}</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -77,6 +301,34 @@
         </div>
     </div>
 </div>
+
+<style>
+    .hover-bg-light {
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        border-color: #e9ecef !important;
+    }
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+        border-color: #ced4da !important;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .bg-primary-light-subtle {
+        background-color: rgba(var(--bs-primary-rgb), 0.06);
+        border-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+    }
+    .bg-warning-light-subtle {
+        background-color: rgba(255, 193, 7, 0.06);
+        border-color: rgba(255, 193, 7, 0.15) !important;
+    }
+    .border-warning-light {
+        border-color: rgba(255, 193, 7, 0.15) !important;
+    }
+    .form-check-input {
+        cursor: pointer;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -86,6 +338,59 @@
         const restoreForm = document.getElementById('restore-form');
         const backupFileInput = document.getElementById('backup_file');
 
+        // Backup checkboxes select all
+        const selectAllBackup = document.getElementById('select-all-backup');
+        const backupCheckboxes = document.querySelectorAll('.category-checkbox-backup');
+
+        selectAllBackup.addEventListener('change', function() {
+            const isChecked = this.checked;
+            backupCheckboxes.forEach(cb => {
+                cb.checked = isChecked;
+            });
+        });
+
+        backupCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const totalChecked = document.querySelectorAll('.category-checkbox-backup:checked').length;
+                selectAllBackup.checked = (totalChecked === backupCheckboxes.length);
+            });
+        });
+
+        // Restore checkboxes select all
+        const selectAllRestore = document.getElementById('select-all-restore');
+        const restoreCheckboxes = document.querySelectorAll('.category-checkbox-restore');
+
+        selectAllRestore.addEventListener('change', function() {
+            const isChecked = this.checked;
+            restoreCheckboxes.forEach(cb => {
+                cb.checked = isChecked;
+            });
+        });
+
+        restoreCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                const totalChecked = document.querySelectorAll('.category-checkbox-restore:checked').length;
+                selectAllRestore.checked = (totalChecked === restoreCheckboxes.length);
+            });
+        });
+
+        // Backup form validation
+        const backupForm = document.getElementById('backup-form');
+        if (backupForm) {
+            backupForm.addEventListener('submit', function(e) {
+                const totalChecked = document.querySelectorAll('.category-checkbox-backup:checked').length;
+                if (totalChecked === 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No Areas Selected',
+                        text: 'Please select at least one database area or media files to backup.'
+                    });
+                }
+            });
+        }
+
+        // Restore Confirmation
         restoreBtn.addEventListener('click', function(e) {
             if (!backupFileInput.files.length) {
                 Swal.fire({
@@ -96,9 +401,29 @@
                 return;
             }
 
+            const selectedRestore = [];
+            document.querySelectorAll('.category-checkbox-restore:checked').forEach(cb => {
+                const labelText = cb.closest('.form-check').querySelector('span').textContent.trim();
+                selectedRestore.push(labelText);
+            });
+
+            if (selectedRestore.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Areas Selected',
+                    text: 'Please select at least one database area or media files to restore.'
+                });
+                return;
+            }
+
+            // Create a styled list for SweetAlert
+            const listHtml = `<div class="text-start mt-2 px-3 small text-muted"><p class="mb-1 fw-bold text-dark">Selected areas for overwrite:</p><ul class="mb-0">` +
+                selectedRestore.map(item => `<li>${item}</li>`).join('') +
+                `</ul></div>`;
+
             Swal.fire({
                 title: 'Are you sure?',
-                text: "This will delete all current products, categories, orders, promotions, and settings, and replace them with the data from the backup ZIP file. This cannot be undone!",
+                html: `This will delete current records and restore data for the following categories: ${listHtml}<br><strong class="text-danger">Warning: This action is irreversible!</strong>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ffc107',
