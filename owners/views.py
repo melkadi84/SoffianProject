@@ -1026,7 +1026,15 @@ def owner_database_backup_restore(request):
                                         if not k:
                                             continue
                                         if v == '':
-                                            data[k] = None
+                                            try:
+                                                from django.db import models as django_models
+                                                field = model_class._meta.get_field(k)
+                                                if not field.null and isinstance(field, (django_models.CharField, django_models.TextField)):
+                                                    data[k] = ''
+                                                else:
+                                                    data[k] = None
+                                            except Exception:
+                                                data[k] = None
                                         else:
                                             data[k] = v
                                             
