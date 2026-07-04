@@ -1087,7 +1087,11 @@ def owner_database_backup_restore(request):
                                                 default_storage.delete(storage_path)
                                             except Exception:
                                                 pass
-                                        default_storage.save(storage_path, ContentFile(file_content))
+                                        try:
+                                            default_storage.save(storage_path, ContentFile(file_content))
+                                        except Exception:
+                                            # Ignore individual invalid files/errors (e.g. Cloudinary invalid image) to prevent rolling back the entire restore
+                                            pass
                                     
                 messages.success(request, "Database has been successfully restored from backup.")
                 return redirect('owner_database_backup_restore')
