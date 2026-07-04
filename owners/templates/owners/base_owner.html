@@ -168,6 +168,16 @@
                                 <i class="bi bi-gear-fill me-2"></i>{% t "Application Configuration" %}
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'backup' in request.path %}active{% endif %}" href="{% url 'owner_database_backup_restore' %}">
+                                <i class="bi bi-cloud-arrow-down-fill me-2"></i>{% t "Backup & Restore" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'reset' in request.path %}active{% endif %}" href="{% url 'owner_database_reset' %}">
+                                <i class="bi bi-trash-fill me-2 text-danger"></i>{% t "Reset Database" %}
+                            </a>
+                        </li>
                     </ul>
                     
                     <div class="p-4 mt-5 border-top border-secondary text-white-50 small">

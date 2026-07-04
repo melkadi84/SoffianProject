@@ -9,12 +9,37 @@
         <h1 class="fw-bold m-0"><i class="bi bi-box-seam text-primary me-2"></i>Product Inventory</h1>
         <p class="text-muted">Manage your catalog, add draft items, and toggle publish states.</p>
     </div>
-    <div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'owner_product_export_template' %}" class="btn btn-crafts-outline">
+            <i class="bi bi-download me-1"></i>{% t "Export CSV Template" %}
+        </a>
+        <button type="button" class="btn btn-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#importCsvModal">
+            <i class="bi bi-upload me-1"></i>{% t "Import CSV" %}
+        </button>
         <a href="{% url 'owner_product_create' %}" class="btn btn-crafts-primary">
-            <i class="bi bi-plus-lg me-1"></i>Add New Product
+            <i class="bi bi-plus-lg me-1"></i>{% t "Add New Product" %}
         </a>
     </div>
 </div>
+
+<!-- Validation Errors if any -->
+{% if import_errors %}
+<div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 4px solid #dc3545 !important;">
+    <div class="d-flex align-items-start gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+        <div>
+            <h5 class="alert-heading fw-bold mb-1">CSV Import Failed</h5>
+            <p class="mb-2 text-muted small">No products were imported. Please check and correct the following row errors and try uploading again:</p>
+            <ul class="mb-0 small text-danger font-monospace" style="max-height: 250px; overflow-y: auto; padding-left: 20px;">
+                {% for err in import_errors %}
+                    <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
 
 <!-- Search Inventory -->
 <div class="card owner-card p-3 mb-4">
@@ -108,6 +133,58 @@
 <form id="delete-product-form" method="POST" action="" class="d-none">
     {% csrf_token %}
 </form>
+
+<!-- Import CSV Modal -->
+<div class="modal fade" id="importCsvModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="importCsvModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="importCsvModalLabel">
+                    <i class="bi bi-file-earmark-spreadsheet me-2 text-warning"></i>{% t "Bulk Import Products" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'owner_product_import_csv' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-4">
+                        Upload a CSV file containing your product catalog. The CSV file must contain the following columns: 
+                        <strong class="text-dark">name, category, description, price</strong>. 
+                        Optional columns: <strong class="text-dark">status, rating, review_count, image_url</strong>.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <label for="csv_file" class="form-label fw-semibold text-secondary">{% t "Select CSV File" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-filetype-csv text-primary"></i></span>
+                            <input class="form-control border-start-0" type="file" id="csv_file" name="csv_file" accept=".csv" required>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded border border-light-subtle">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle-fill text-info mt-1 fs-5"></i>
+                            <div class="small text-muted">
+                                <strong>Need a starting point?</strong> Download our pre-formatted template with sample Egyptian handcrafted products to make sure your data imports correctly.
+                                <div class="mt-2">
+                                    <a href="{% url 'owner_product_export_template' %}" class="btn btn-sm btn-outline-secondary py-1 px-2 fw-semibold">
+                                        <i class="bi bi-download me-1"></i>{% t "Download Template" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% t "Close" %}</button>
+                    <button type="submit" class="btn btn-crafts-primary px-4">
+                        <i class="bi bi-cloud-arrow-up me-1"></i>{% t "Import" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

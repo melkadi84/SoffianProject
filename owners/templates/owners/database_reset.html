@@ -1,0 +1,91 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}{% t "Reset Database" %} - Little Creators Shop Owner Portal{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="fw-bold m-0"><i class="bi bi-trash-fill text-danger me-2"></i>{% t "Reset Database" %}</h1>
+    <p class="text-muted">Delete all product catalog data to restore the store to a blank state.</p>
+</div>
+
+<div class="card owner-card border-0 shadow-sm p-4 mx-auto" style="max-width: 600px;">
+    <div class="text-center mb-4">
+        <div class="bg-danger-light p-3 rounded-circle d-inline-block text-danger mb-3" style="background-color: #f8d7da;">
+            <i class="bi bi-exclamation-octagon-fill display-4"></i>
+        </div>
+        <h3 class="fw-bold text-dark">{% t "Reset Catalog Data" %}</h3>
+        <p class="text-muted small">This action will permanently wipe your storefront catalog.</p>
+    </div>
+
+    <div class="alert alert-danger border-0 small mb-4" style="border-left: 4px solid #dc3545 !important;">
+        <h5 class="alert-heading fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>{% t "This action is irreversible!" %}</h5>
+        <p class="mb-0">{% t "Warning: All products, categories, orders, promotions, themes, and configuration data will be deleted." %}</p>
+        <p class="mt-2 mb-0 fw-bold">Note: Your owner user account will NOT be deleted, so you will remain logged in.</p>
+    </div>
+
+    <form method="POST" action="" id="reset-db-form">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="confirmation_phrase" class="form-label fw-semibold text-secondary">
+                {% t "Confirmation Phrase" %}
+            </label>
+            <input type="text" class="form-control text-center font-monospace fw-bold py-2 border-danger" 
+                   id="confirmation_phrase" name="confirmation_phrase" 
+                   placeholder="RESET DATABASE" required autocomplete="off">
+            <div class="form-text text-center text-muted mt-2">
+                Type <strong class="text-danger">RESET DATABASE</strong> in all caps to confirm.
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-danger w-100 py-2 fw-semibold shadow-sm" id="reset-db-btn">
+            <i class="bi bi-trash-fill me-1"></i>{% t "Reset Database" %}
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetBtn = document.getElementById('reset-db-btn');
+        const resetForm = document.getElementById('reset-db-form');
+        const confirmationInput = document.getElementById('confirmation_phrase');
+
+        resetBtn.addEventListener('click', function(e) {
+            const val = confirmationInput.value.trim();
+            if (val !== 'RESET DATABASE') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Confirmation',
+                    text: 'Please type the exact phrase "RESET DATABASE" to confirm database reset.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'CRITICAL WARNING!',
+                text: "You are about to delete ALL catalog data (products, categories, orders, promotions). This action cannot be reverted! Are you absolutely sure?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#5c4e46',
+                confirmButtonText: 'Yes, delete everything!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Resetting Database...',
+                        text: 'Wiping database records...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    resetForm.submit();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

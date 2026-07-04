@@ -1,0 +1,124 @@
+{% extends 'owners/base_owner.html' %}
+{% load translate_tags %}
+
+{% block title %}{% t "Backup & Restore" %} - Little Creators Shop Owner Portal{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="fw-bold m-0"><i class="bi bi-cloud-arrow-down-fill text-primary me-2"></i>{% t "Database Backup and Restore" %}</h1>
+    <p class="text-muted">Export all database records to a zipped CSV catalog or restore from a previous backup file.</p>
+</div>
+
+<div class="row g-4">
+    <!-- Backup Export -->
+    <div class="col-md-6">
+        <div class="card owner-card h-100 shadow-sm border-0 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="bg-primary-light p-3 rounded-circle text-primary" style="background-color: var(--color-primary-light);">
+                    <i class="bi bi-download fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="h5 fw-bold m-0">{% t "Export Database Backup" %}</h3>
+                    <p class="text-muted small m-0">Download a full snapshot of your store's data.</p>
+                </div>
+            </div>
+            
+            <p class="text-muted small mb-4">
+                This will generate a `.zip` archive containing separate CSV files for users, products, categories, orders, themes, promotions, and settings. You can download and save this file to restore your store state at any time.
+            </p>
+            
+            <div class="mt-auto">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="export">
+                    <button type="submit" class="btn btn-crafts-primary w-100 py-2 fw-semibold">
+                        <i class="bi bi-file-earmark-zip me-1"></i>{% t "Generate Backup" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Import / Restore -->
+    <div class="col-md-6">
+        <div class="card owner-card h-100 shadow-sm border-0 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="bg-warning-light p-3 rounded-circle text-warning" style="background-color: #fff3cd;">
+                    <i class="bi bi-upload fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="h5 fw-bold m-0">{% t "Restore Database from Backup" %}</h3>
+                    <p class="text-muted small m-0">Upload and restore your store state from a ZIP backup.</p>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning border-0 small mb-4 py-2" style="border-left: 4px solid #ffc107 !important;">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                <strong>Warning:</strong> {% t "This action is irreversible!" %} Uploading a backup will delete and overwrite all current database records.
+            </div>
+
+            <form method="POST" action="" enctype="multipart/form-data" id="restore-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="restore">
+                <div class="mb-4">
+                    <label for="backup_file" class="form-label fw-semibold text-secondary">Select Backup ZIP File</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-file-earmark-zip text-warning"></i></span>
+                        <input class="form-control border-start-0" type="file" id="backup_file" name="backup_file" accept=".zip" required>
+                    </div>
+                </div>
+
+                <div class="mt-auto">
+                    <button type="button" class="btn btn-dark w-100 py-2 fw-semibold" id="restore-btn">
+                        <i class="bi bi-cloud-arrow-up me-1"></i>{% t "Upload & Restore" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const restoreBtn = document.getElementById('restore-btn');
+        const restoreForm = document.getElementById('restore-form');
+        const backupFileInput = document.getElementById('backup_file');
+
+        restoreBtn.addEventListener('click', function(e) {
+            if (!backupFileInput.files.length) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No File Selected',
+                    text: 'Please select a database backup ZIP file first.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will delete all current products, categories, orders, promotions, and settings, and replace them with the data from the backup ZIP file. This cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#5c4e46',
+                confirmButtonText: 'Yes, overwrite and restore!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Restoring Database...',
+                        text: 'Please wait while we parse and reload the data.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    restoreForm.submit();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

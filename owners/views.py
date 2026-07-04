@@ -1,3 +1,14 @@
+import csv
+import io
+import urllib.request
+import tempfile
+import os
+import zipfile
+from decimal import Decimal, InvalidOperation
+from django.db import transaction
+from django.core.files import File
+from django.http import HttpResponse
+from django.utils.text import slugify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
@@ -205,7 +216,229 @@ def product_list(request):
     if search:
         products = products.filter(name__icontains=search)
 
-    return render(request, 'owners/product_list.html', {'products': products, 'search': search})
+    # Pop CSV import errors from session if present
+    import_errors = request.session.pop('import_errors', None)
+
+    return render(request, 'owners/product_list.html', {
+        'products': products,
+        'search': search,
+        'import_errors': import_errors
+    })
+
+
+@owner_required
+def product_export_template(request):
+    """
+    Exports a CSV template with header details and sample handcrafted items.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="product_import_template.csv"'
+
+    writer = csv.writer(response)
+    # Header
+    writer.writerow(['name', 'category', 'description', 'price', 'status', 'rating', 'review_count', 'image_url'])
+    # Sample Row 1
+    writer.writerow([
+        'Handmade Clay Mug',
+        'Ceramics',
+        'A beautifully crafted terracotta mug with a rustic glaze finish. Perfect for hot beverages.',
+        '120.00',
+        'PUBLISHED',
+        '4.8',
+        '15',
+        'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=300'
+    ])
+    # Sample Row 2
+    writer.writerow([
+        'Embroidered Cushion Cover',
+        'Textiles',
+        'Colorful cotton cushion cover featuring traditional hand-stitched floral patterns.',
+        '250.00',
+        'DRAFT',
+        '4.5',
+        '8',
+        ''
+    ])
+    return response
+
+
+@owner_required
+def product_import_csv(request):
+    """
+    Handles CSV parsing, validation, auto-category creation, optional image download,
+    and bulk import inside an atomic transaction.
+    """
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('owner_product_list')
+
+    csv_file = request.FILES.get('csv_file')
+    if not csv_file:
+        messages.error(request, "Please upload a CSV file.")
+        return redirect('owner_product_list')
+
+    if not csv_file.name.endswith('.csv'):
+        messages.error(request, "Uploaded file must be a CSV file.")
+        return redirect('owner_product_list')
+
+    try:
+        # Read the file content
+        file_data = csv_file.read().decode('utf-8-sig') # handling BOM
+        csv_data = io.StringIO(file_data)
+        reader = csv.DictReader(csv_data)
+    except Exception as e:
+        messages.error(request, f"Error reading CSV file: {str(e)}")
+        return redirect('owner_product_list')
+
+    # Check headers
+    required_headers = {'name', 'category', 'description', 'price'}
+    actual_headers = {h.strip().lower() for h in reader.fieldnames} if reader.fieldnames else set()
+    missing_headers = required_headers - actual_headers
+    if missing_headers:
+        messages.error(request, f"CSV is missing required columns: {', '.join(missing_headers)}")
+        return redirect('owner_product_list')
+
+    errors = []
+    products_to_create = [] # (product_obj, image_url_str) tuples
+
+    # Start validation loop
+    for row_idx, row in enumerate(reader, start=2): # 1-indexed row header is line 1, first data is line 2
+        # Strip keys and values
+        clean_row = {k.strip().lower(): v.strip() for k, v in row.items() if k}
+        
+        name = clean_row.get('name')
+        category_name = clean_row.get('category')
+        description = clean_row.get('description')
+        price_str = clean_row.get('price')
+        status = clean_row.get('status', 'DRAFT').upper()
+        rating_str = clean_row.get('rating', '4.5')
+        review_count_str = clean_row.get('review_count', '12')
+        image_url = clean_row.get('image_url', '')
+
+        row_errors = []
+
+        # Validate name
+        if not name:
+            row_errors.append("Product name is required.")
+
+        # Validate category
+        if not category_name:
+            row_errors.append("Category name is required.")
+
+        # Validate description
+        if not description:
+            row_errors.append("Description is required.")
+
+        # Validate price
+        price = None
+        if not price_str:
+            row_errors.append("Price is required.")
+        else:
+            try:
+                price = Decimal(price_str)
+                if price <= 0:
+                    row_errors.append("Price must be greater than zero.")
+            except (InvalidOperation, ValueError):
+                row_errors.append(f"Invalid price value: '{price_str}'. Must be a valid decimal number.")
+
+        # Validate status
+        if status not in ['DRAFT', 'PUBLISHED']:
+            status = 'DRAFT' # safe default
+
+        # Validate rating
+        rating = 4.5
+        if rating_str:
+            try:
+                rating = float(rating_str)
+                if not (0.0 <= rating <= 5.0):
+                    row_errors.append("Rating must be between 0.0 and 5.0.")
+            except ValueError:
+                row_errors.append(f"Invalid rating value: '{rating_str}'. Must be a number between 0.0 and 5.0.")
+
+        # Validate review count
+        review_count = 12
+        if review_count_str:
+            try:
+                review_count = int(review_count_str)
+                if review_count < 0:
+                    row_errors.append("Review count cannot be negative.")
+            except ValueError:
+                row_errors.append(f"Invalid review count: '{review_count_str}'. Must be an integer.")
+
+        if row_errors:
+            errors.append(f"Row {row_idx}: " + "; ".join(row_errors))
+            continue
+
+        products_to_create.append({
+            'name': name,
+            'category_name': category_name,
+            'description': description,
+            'price': price,
+            'status': status,
+            'rating': rating,
+            'review_count': review_count,
+            'image_url': image_url,
+            'row_idx': row_idx
+        })
+
+    # If any parsing/validation errors occurred, stop and roll back
+    if errors:
+        request.session['import_errors'] = errors
+        messages.error(request, "CSV import failed due to validation errors. No products were imported.")
+        return redirect('owner_product_list')
+
+    # Proceed with database transactions
+    imported_count = 0
+    try:
+        with transaction.atomic():
+            for item in products_to_create:
+                # 1. Resolve Category
+                cat_name = item['category_name']
+                # Case insensitive check
+                category = Category.objects.filter(name__iexact=cat_name).first()
+                if not category:
+                    category = Category.objects.create(name=cat_name)
+
+                # 2. Create Product (slug is auto-generated in model save method)
+                prod = Product(
+                    name=item['name'],
+                    category=category,
+                    description=item['description'],
+                    price=item['price'],
+                    status=item['status'],
+                    rating=item['rating'],
+                    review_count=item['review_count']
+                )
+
+                # Try image download if image_url is provided
+                img_url = item['image_url']
+                if img_url:
+                    try:
+                        img_temp = tempfile.TemporaryFile()
+                        req = urllib.request.Request(
+                            img_url,
+                            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+                        )
+                        with urllib.request.urlopen(req, timeout=10) as response:
+                            img_temp.write(response.read())
+                        img_temp.seek(0)
+                        filename = os.path.basename(img_url.split('?')[0])
+                        if not filename or '.' not in filename:
+                            filename = f"imported_product_{item['row_idx']}.jpg"
+                        prod.image.save(filename, File(img_temp), save=False)
+                    except Exception as img_err:
+                        # We don't fail the import for image download errors, just let product save without image
+                        pass
+
+                prod.save()
+                imported_count += 1
+    except Exception as db_err:
+        request.session['import_errors'] = [f"Database error during import: {str(db_err)}"]
+        messages.error(request, "CSV import failed due to database error. No products were imported.")
+        return redirect('owner_product_list')
+
+    messages.success(request, f"Successfully imported {imported_count} products.")
+    return redirect('owner_product_list')
 
 
 @owner_required
@@ -615,6 +848,166 @@ def ajax_category_create(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@owner_required
+def owner_database_backup_restore(request):
+    """
+    Renders the Backup & Restore dashboard.
+    Handles backup generation (export ZIP of CSVs) and restore (import ZIP of CSVs).
+    """
+    models_to_backup = [
+        ('users', CustomUser),
+        ('categories', Category),
+        ('products', Product),
+        ('product_images', ProductImage),
+        ('themes', Theme),
+        ('promotions', Promotion),
+        ('orders', Order),
+        ('order_items', OrderItem),
+        ('app_configurations', AppConfiguration),
+    ]
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # --- EXPORT BACKUP ---
+        if action == 'export':
+            try:
+                # Create ZIP in-memory
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                    for filename, model_class in models_to_backup:
+                        # Generate CSV content for the model
+                        csv_output = io.StringIO()
+                        writer = csv.writer(csv_output)
+                        
+                        # Get all fields
+                        fields = [f.name for f in model_class._meta.fields]
+                        writer.writerow(fields)
+                        
+                        for obj in model_class.objects.all():
+                            row = []
+                            for field in fields:
+                                val = getattr(obj, field)
+                                if val is None:
+                                    row.append('')
+                                elif isinstance(val, timezone.datetime):
+                                    row.append(val.isoformat())
+                                else:
+                                    row.append(str(val))
+                            writer.writerow(row)
+                        
+                        zip_file.writestr(f"{filename}.csv", csv_output.getvalue())
+                
+                zip_buffer.seek(0)
+                timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+                response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+                response['Content-Disposition'] = f'attachment; filename="soffian_db_backup_{timestamp}.zip"'
+                return response
+            except Exception as e:
+                messages.error(request, f"Error generating database backup: {str(e)}")
+                return redirect('owner_database_backup_restore')
+                
+        # --- IMPORT/RESTORE BACKUP ---
+        elif action == 'restore':
+            backup_file = request.FILES.get('backup_file')
+            if not backup_file:
+                messages.error(request, "Please upload a valid backup ZIP file.")
+                return redirect('owner_database_backup_restore')
+                
+            if not backup_file.name.endswith('.zip'):
+                messages.error(request, "Uploaded file must be a ZIP file.")
+                return redirect('owner_database_backup_restore')
+                
+            try:
+                # Read zip in-memory
+                zip_data = io.BytesIO(backup_file.read())
+                with zipfile.ZipFile(zip_data) as zip_file:
+                    file_list = zip_file.namelist()
+                    
+                    # Read all CSV contents
+                    csv_contents = {}
+                    for name, _ in models_to_backup:
+                        filename = f"{name}.csv"
+                        if filename in file_list:
+                            csv_contents[name] = zip_file.read(filename).decode('utf-8')
+                    
+                    # Validate that we have at least user and configuration data
+                    if 'users' not in csv_contents or 'app_configurations' not in csv_contents:
+                        messages.error(request, "Invalid backup ZIP: missing core files.")
+                        return redirect('owner_database_backup_restore')
+                    
+                    # Perform restoration in transaction to ensure atomic rollback on failure
+                    with transaction.atomic():
+                        # Delete existing records in reverse topological order
+                        OrderItem.objects.all().delete()
+                        Order.objects.all().delete()
+                        Promotion.objects.all().delete()
+                        ProductImage.objects.all().delete()
+                        Product.objects.all().delete()
+                        Category.objects.all().delete()
+                        CustomUser.objects.all().delete()
+                        Theme.objects.all().delete()
+                        AppConfiguration.objects.all().delete()
+                        
+                        # Restore in topological order
+                        for name, model_class in models_to_backup:
+                            if name in csv_contents:
+                                reader = csv.DictReader(io.StringIO(csv_contents[name]))
+                                for row in reader:
+                                    data = {}
+                                    for k, v in row.items():
+                                        if not k:
+                                            continue
+                                        if v == '':
+                                            data[k] = None
+                                        else:
+                                            data[k] = v
+                                            
+                                    obj = model_class(**data)
+                                    obj.save()
+                                    
+                messages.success(request, "Database has been successfully restored from backup.")
+                return redirect('owner_database_backup_restore')
+                
+            except Exception as e:
+                messages.error(request, f"Error restoring database: {str(e)}")
+                return redirect('owner_database_backup_restore')
+
+    return render(request, 'owners/database_backup_restore.html')
+
+
+@owner_required
+def owner_database_reset(request):
+    """
+    Renders the Reset Database dashboard.
+    Clears catalog data when the owner type-confirms the reset action.
+    """
+    if request.method == 'POST':
+        confirmation = request.POST.get('confirmation_phrase', '').strip()
+        if confirmation != 'RESET DATABASE':
+            messages.error(request, "Confirmation phrase did not match. Database reset canceled.")
+            return redirect('owner_database_reset')
+
+        try:
+            with transaction.atomic():
+                OrderItem.objects.all().delete()
+                Order.objects.all().delete()
+                Promotion.objects.all().delete()
+                ProductImage.objects.all().delete()
+                Product.objects.all().delete()
+                Category.objects.all().delete()
+                Theme.objects.all().delete()
+                AppConfiguration.objects.all().delete()
+                
+            messages.success(request, "All catalog data has been successfully deleted. Database reset complete.")
+            return redirect('owner_product_list')
+        except Exception as e:
+            messages.error(request, f"Error resetting database: {str(e)}")
+            return redirect('owner_database_reset')
+
+    return render(request, 'owners/database_reset.html')
 
 
 

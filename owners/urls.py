@@ -5,6 +5,10 @@ urlpatterns = [
     path('', views.owner_dashboard, name='owner_dashboard'),
     path('products/', views.product_list, name='owner_product_list'),
     path('products/create/', views.product_create_or_edit, name='owner_product_create'),
+    path('products/export-template/', views.product_export_template, name='owner_product_export_template'),
+    path('products/import-csv/', views.product_import_csv, name='owner_product_import_csv'),
+    path('database/backup-restore/', views.owner_database_backup_restore, name='owner_database_backup_restore'),
+    path('database/reset/', views.owner_database_reset, name='owner_database_reset'),
     path('products/edit/<int:pk>/', views.product_create_or_edit, name='owner_product_edit'),
     path('products/delete/<int:pk>/', views.product_delete, name='owner_product_delete'),
     
