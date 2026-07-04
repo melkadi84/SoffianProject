@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('id_category');
     const descInput = document.getElementById('id_description');
     const imageInput = document.getElementById('id_image');
-    const statusSelect = document.getElementById('id_status');
+    const statusToggle = document.getElementById('status-toggle');
 
     // Select preview placeholders
     const prevName = document.getElementById('preview-name');
@@ -61,12 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Update status badge
-    if (statusSelect) {
-        statusSelect.addEventListener('change', function() {
-            const status = this.value;
+    if (statusToggle) {
+        statusToggle.addEventListener('change', function() {
+            const isPublished = this.checked;
             if (prevStatus) {
-                prevStatus.textContent = status;
-                if (status === 'PUBLISHED') {
+                prevStatus.textContent = isPublished ? 'PUBLISHED' : 'DRAFT';
+                if (isPublished) {
                     prevStatus.className = 'badge bg-success text-white';
                     if (prevStatusDot) prevStatusDot.className = 'status-dot bg-success';
                 } else {
@@ -94,6 +94,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     prevImage.src = 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop';
                 }
+            }
+        });
+    }
+
+    // Select rating & review_count inputs & preview spans
+    const ratingInput = document.getElementById('id_rating');
+    const reviewCountInput = document.getElementById('id_review_count');
+    const prevStars = document.getElementById('preview-stars');
+    const prevReviewsCount = document.getElementById('preview-reviews-count');
+
+    // Update rating stars
+    if (ratingInput && prevStars) {
+        ratingInput.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if (isNaN(val) || val < 0) return;
+            const fullStars = Math.min(5, Math.max(0, Math.floor(val)));
+            const halfStar = (val - fullStars) >= 0.25 && fullStars < 5 ? 1 : 0;
+            const emptyStars = Math.max(0, 5 - fullStars - halfStar);
+            
+            let html = '';
+            for (let i = 0; i < fullStars; i++) {
+                html += '<i class="bi bi-star-fill"></i>';
+            }
+            if (halfStar) {
+                html += '<i class="bi bi-star-half"></i>';
+            }
+            for (let i = 0; i < emptyStars; i++) {
+                html += '<i class="bi bi-star"></i>';
+            }
+            prevStars.innerHTML = html;
+        });
+    }
+
+    // Update reviews count
+    if (reviewCountInput && prevReviewsCount) {
+        reviewCountInput.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (!isNaN(val) && val >= 0) {
+                prevReviewsCount.textContent = `(${val})`;
+            } else {
+                prevReviewsCount.textContent = '(0)';
             }
         });
     }

@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',  # لازم تكون قبل staticfiles
     'django.contrib.staticfiles',
+    'cloudinary',
     'core.apps.CoreConfig',
     'owners.apps.OwnersConfig',
 ]
@@ -162,36 +164,24 @@ class LazyCompressedManifestStaticFilesStorage(CompressedManifestStaticFilesStor
         except ValueError:
             return name
 
-# Cloudinary Storage integration (Dynamic check)
-CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+# إعدادات ملفات الميديا (الصور المرفوعة)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-if CLOUDINARY_URL:
-    # django-cloudinary-storage requires 'cloudinary_storage' to be before staticfiles app
-    if 'cloudinary_storage' not in INSTALLED_APPS:
-        INSTALLED_APPS.insert(0, 'cloudinary_storage')
-    if 'cloudinary' not in INSTALLED_APPS:
-        INSTALLED_APPS.append('cloudinary')
-    
-    CLOUDINARY_STORAGE = {
-        'CLOUDINARY_URL': CLOUDINARY_URL
-    }
-    STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "crafts_project.settings.LazyCompressedManifestStaticFilesStorage",
-        },
-    }
-else:
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "crafts_project.settings.LazyCompressedManifestStaticFilesStorage",
-        },
-    }
+# بيانات الربط مع حسابك (هنجيبها من لوحة تحكم Cloudinary)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'pdckztkc'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '129234655454731'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'pVS2Q0Nm0MxMMmSI3AUUUma6vLM')
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "crafts_project.settings.LazyCompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
