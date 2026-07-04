@@ -473,4 +473,39 @@ class CraftsTestCase(TestCase):
         response = self.client.get(f'/owners/products/edit/{self.product.id}/')
         self.assertEqual(response.status_code, 200)
 
+    def test_password_change_flow(self):
+        """
+        Verify that users can change their password using the password change page.
+        """
+        # Login normal user
+        self.assertTrue(self.client.login(email="normal@crafts.com", password="password123"))
+        
+        # Verify page renders
+        response = self.client.get('/password-change/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Change Password')
+        
+        # Post invalid old password
+        post_data = {
+            'old_password': 'wrongpassword',
+            'new_password1': 'newpassword123',
+            'new_password2': 'newpassword123',
+        }
+        response = self.client.post('/password-change/', post_data)
+        self.assertEqual(response.status_code, 200) # Form errors, renders form again
+        self.assertContains(response, 'Please correct the errors below.')
+        
+        # Post valid password change
+        post_data = {
+            'old_password': 'password123',
+            'new_password1': 'newpassword123',
+            'new_password2': 'newpassword123',
+        }
+        response = self.client.post('/password-change/', post_data)
+        self.assertRedirects(response, '/')
+        
+        # Verify can login with new password
+        self.client.logout()
+        self.assertTrue(self.client.login(email="normal@crafts.com", password="newpassword123"))
+
 

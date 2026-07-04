@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
-from django.core.signing import Signer, BadSignature
+from django.core.signing import TimestampSigner, BadSignature
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.db.models import Q
@@ -12,7 +12,7 @@ from .models import Category, Product, Promotion, CustomUser, Order, OrderItem, 
 from django.utils.http import url_has_allowed_host_and_scheme
 from core.translations import _t
 
-signer = Signer()
+signer = TimestampSigner()
 
 def store_view(request):
     """
@@ -488,6 +488,19 @@ def add_product_review(request, product_id):
     
     messages.success(request, _t("Thank you! Your review has been submitted successfully."))
     return redirect('product_detail', slug=product.slug)
+
+
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class CustomPasswordChangeView(LoginRequiredMixin, SuccessMessageMixin, PasswordChangeView):
+    template_name = 'core/password_change.html'
+    success_url = reverse_lazy('store')
+    
+    def get_success_message(self, cleaned_data):
+        return _t("Password changed successfully!")
 
 
 

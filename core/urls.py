@@ -16,4 +16,5 @@ urlpatterns = [
     path('order/success/<int:order_id>/', views.order_success_view, name='order_success'),
     path('about/', views.about_view, name='about'),
     path('product/<int:product_id>/review/', views.add_product_review, name='add_product_review'),
+    path('password-change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
 ]
