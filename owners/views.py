@@ -892,7 +892,7 @@ def owner_database_backup_restore(request):
                             writer = csv.writer(csv_output)
                             
                             # Get all fields
-                            fields = [f.name for f in model_class._meta.fields]
+                            fields = [f.attname for f in model_class._meta.fields]
                             writer.writerow(fields)
                             
                             for obj in model_class.objects.all():
@@ -1036,7 +1036,40 @@ def owner_database_backup_restore(request):
                                             except Exception:
                                                 data[k] = None
                                         else:
-                                            data[k] = v
+                                            try:
+                                                from django.db import models as django_models
+                                                
+                                                field_name = k
+                                                is_fk_id = False
+                                                if k.endswith('_id') and k != 'id':
+                                                    field_name = k[:-3]
+                                                    is_fk_id = True
+                                                    
+                                                field = model_class._meta.get_field(field_name)
+                                                if field.is_relation:
+                                                    if is_fk_id:
+                                                        data[k] = v
+                                                    else:
+                                                        related_model = field.related_model
+                                                        if v.isdigit():
+                                                            data[f"{k}_id"] = int(v)
+                                                        else:
+                                                            related_obj = None
+                                                            if hasattr(related_model, 'name'):
+                                                                related_obj = related_model.objects.filter(name=v).first()
+                                                            elif hasattr(related_model, 'email'):
+                                                                related_obj = related_model.objects.filter(email=v).first()
+                                                            elif hasattr(related_model, 'username'):
+                                                                related_obj = related_model.objects.filter(username=v).first()
+                                                            
+                                                            if related_obj:
+                                                                data[f"{k}_id"] = related_obj.id
+                                                            else:
+                                                                data[k] = v
+                                                else:
+                                                    data[k] = v
+                                            except Exception:
+                                                data[k] = v
                                             
                                     obj = model_class(**data)
                                     obj.save()
