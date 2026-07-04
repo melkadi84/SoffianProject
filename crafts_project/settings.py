@@ -52,8 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',  # لازم تكون قبل staticfiles
     'django.contrib.staticfiles',
+    'cloudinary_storage',
     'cloudinary',
     'core.apps.CoreConfig',
     'owners.apps.OwnersConfig',
@@ -167,11 +167,14 @@ class LazyCompressedManifestStaticFilesStorage(CompressedManifestStaticFilesStor
 # إعدادات ملفات الميديا (الصور المرفوعة)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# إعدادات ملفات الاستاتيك (تجنباً لخطأ collectstatic مع django-cloudinary-storage)
+STATICFILES_STORAGE = 'crafts_project.settings.LazyCompressedManifestStaticFilesStorage'
+
 # بيانات الربط مع حسابك (هنجيبها من لوحة تحكم Cloudinary)
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'pdckztkc'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '129234655454731'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'pVS2Q0Nm0MxMMmSI3AUUUma6vLM')
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET')
 }
 
 STORAGES = {
